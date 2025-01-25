@@ -33,13 +33,13 @@ export async function GET() {
     // 获取用户列表
     const users = await prisma.user.findMany({
       select: {
-        user_id: true,
+        id: true,
         username: true,
         role: true,
-        create_time: true,
+        createdAt: true,
       },
       orderBy: {
-        user_id: 'desc',
+        createdAt: 'desc',
       },
     })
 
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 
     const { username, password, role } = await request.json()
 
-    // 验证用户名是否已存在
+    // 检查用户名是否已存在
     const existingUser = await prisma.user.findUnique({
       where: { username },
     })
@@ -94,8 +94,7 @@ export async function POST(request: Request) {
     }
 
     // 加密密码
-    const saltRounds = 10
-    const hashedPassword = await bcrypt.hash(password, saltRounds)
+    const hashedPassword = await bcrypt.hash(password, 8)
 
     // 创建新用户
     const newUser = await prisma.user.create({
@@ -104,16 +103,15 @@ export async function POST(request: Request) {
         password: hashedPassword,
         role,
       },
-    })
-
-    return NextResponse.json({
-      user: {
-        user_id: newUser.user_id,
-        username: newUser.username,
-        role: newUser.role,
-        create_time: newUser.create_time,
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        createdAt: true,
       },
     })
+
+    return NextResponse.json(newUser)
   } catch (error) {
     console.error('创建用户失败:', error)
     return NextResponse.json(
