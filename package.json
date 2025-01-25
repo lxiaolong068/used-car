@@ -6,12 +6,11 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint --max-warnings 0",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
-    "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && next build"
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -38,6 +37,8 @@
     "@types/node": "^20.17.16",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4",
     "prisma": "^5.0.0",
     "typescript": "^5.3.3"
   }

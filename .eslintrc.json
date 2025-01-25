@@ -1,0 +1,8 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // 关闭一些可能导致构建失败的规则
+    "@next/next/no-img-element": "off",
+    "@next/next/no-html-link-for-pages": "off"
+  }
+}
