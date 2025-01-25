@@ -4,12 +4,13 @@
   "description": "二手车辆管理系统",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint --max-warnings 0",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
+    "vercel-build": "prisma generate && next build",
     "postinstall": "prisma generate"
   },
   "keywords": [],
@@ -18,7 +19,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^2.2.0",
-    "@prisma/client": "^5.0.0",
+    "@prisma/client": "^5.22.0",
     "@tailwindcss/forms": "^0.5.7",
     "autoprefixer": "^10.4.17",
     "bcrypt": "^5.1.1",
