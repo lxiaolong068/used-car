@@ -28,6 +28,8 @@ export default function UsersPage() {
     role: 'user'
   })
   const [formError, setFormError] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteUserId, setDeleteUserId] = useState<number | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -59,6 +61,7 @@ export default function UsersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError('')
+    setIsModalOpen(false)
 
     try {
       const response = await fetch('/api/users', {
@@ -81,12 +84,34 @@ export default function UsersPage() {
         password: '',
         role: 'user'
       })
-      setIsModalOpen(false)
 
       // 刷新用户列表
       fetchUsers()
     } catch (err: any) {
       setFormError(err.message)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    setDeleteUserId(id)
+    setIsDeleting(true)
+
+    try {
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || '删除用户失败')
+      }
+
+      fetchUsers()
+    } catch (error: any) {
+      alert(error.message)
+    } finally {
+      setIsDeleting(false)
+      setDeleteUserId(null)
     }
   }
 
@@ -191,9 +216,11 @@ export default function UsersPage() {
                           编辑
                         </button>
                         <button
-                          className="text-red-600 hover:text-red-900"
+                          onClick={() => handleDelete(user.user_id)}
+                          disabled={isDeleting && deleteUserId === user.user_id}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          删除
+                          {isDeleting && deleteUserId === user.user_id ? '删除中...' : '删除'}
                         </button>
                       </td>
                     </tr>
