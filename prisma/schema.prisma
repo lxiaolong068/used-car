@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model car_info {
+  vehicle_id    Int       @id @default(autoincrement()) @db.UnsignedInt
+  vin           String    @db.VarChar(50)
+  vehicle_model String    @db.VarChar(20)
+  register_date DateTime  @db.DateTime(0)
+  purchase_date DateTime  @db.DateTime(0)
+  mileage       Decimal   @db.Decimal(5, 2)
+  create_time   DateTime? @db.DateTime(0)
+  update_time   DateTime? @db.DateTime(0)
+
+  @@index([vehicle_model], map: "vehicle_model")
+  @@index([vin], map: "vin")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model cost_management {
+  cost_id       Int       @id @default(autoincrement()) @db.UnsignedInt
+  vehicle_id    Int       @db.UnsignedInt
+  amount        Decimal   @db.Decimal(5, 2)
+  remark        String    @db.VarChar(255)
+  type          String    @db.VarChar(20)
+  payment_phase Bytes     @db.TinyBlob
+  create_time   DateTime? @db.DateTime(0)
+  update_time   DateTime? @db.DateTime(0)
+  payment_date  DateTime  @db.DateTime(0)
+
+  @@index([remark], map: "remark")
+  @@index([type], map: "type")
+  @@index([vehicle_id], map: "vehicle_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model operation_log {
+  log_id      Int       @id @default(autoincrement()) @db.UnsignedInt
+  user_id     Int       @db.UnsignedInt
+  action_type String    @db.VarChar(20)
+  details     String?   @db.Text
+  ip_address  String?   @db.VarChar(45)
+  create_time DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([user_id], map: "user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model revenue_management {
+  revenue_id    Int      @id @default(autoincrement()) @db.UnsignedInt
+  vehicle_id    Int      @db.UnsignedInt
+  amount        Decimal  @db.Decimal(5, 2)
+  remark        String   @db.VarChar(255)
+  revenue_phase Int      @db.TinyInt
+  payment_date  DateTime @db.DateTime(0)
+
+  @@index([remark], map: "remark")
+  @@index([vehicle_id], map: "vehicle_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user {
+  user_id     Int       @id @default(autoincrement()) @db.UnsignedInt
+  username    String    @unique(map: "username") @db.VarChar(50)
+  password    String    @db.VarChar(100)
+  role        user_role @default(user)
+  create_time DateTime? @default(now()) @db.DateTime(0)
+}
+
+enum user_role {
+  admin
+  user
+}
