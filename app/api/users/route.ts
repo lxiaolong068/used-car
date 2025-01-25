@@ -20,7 +20,10 @@ export async function GET() {
     }
 
     // 验证 token
-    const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'your-secret-key') as any
+    const decoded = jwt.verify(
+      token.value,
+      process.env.JWT_SECRET || 'your-secret-key'
+    ) as any
 
     // 检查是否是管理员
     if (decoded.role !== 'admin') {
@@ -44,8 +47,17 @@ export async function GET() {
     })
 
     return NextResponse.json(users)
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取用户列表失败:', error)
+
+    // 如果是 token 验证错误
+    if (error.name === 'JsonWebTokenError') {
+      return NextResponse.json(
+        { error: '登录已过期' },
+        { status: 401 }
+      )
+    }
+
     return NextResponse.json(
       { error: '获取用户列表失败' },
       { status: 500 }
@@ -69,7 +81,10 @@ export async function POST(request: Request) {
     }
 
     // 验证 token
-    const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'your-secret-key') as any
+    const decoded = jwt.verify(
+      token.value,
+      process.env.JWT_SECRET || 'your-secret-key'
+    ) as any
 
     // 检查是否是管理员
     if (decoded.role !== 'admin') {
@@ -80,6 +95,14 @@ export async function POST(request: Request) {
     }
 
     const { username, password, role } = await request.json()
+
+    // 验证必填字段
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: '用户名和密码不能为空' },
+        { status: 400 }
+      )
+    }
 
     // 检查用户名是否已存在
     const existingUser = await prisma.user.findUnique({
@@ -101,7 +124,7 @@ export async function POST(request: Request) {
       data: {
         username,
         password: hashedPassword,
-        role,
+        role: role || 'user',
       },
       select: {
         id: true,
@@ -112,8 +135,17 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json(newUser)
-  } catch (error) {
+  } catch (error: any) {
     console.error('创建用户失败:', error)
+
+    // 如果是 token 验证错误
+    if (error.name === 'JsonWebTokenError') {
+      return NextResponse.json(
+        { error: '登录已过期' },
+        { status: 401 }
+      )
+    }
+
     return NextResponse.json(
       { error: '创建用户失败' },
       { status: 500 }

@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-
 // 这些路径不需要验证
 const publicPaths = ['/', '/api/auth/login']
 
@@ -15,45 +13,46 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 如果是 API 路由但不是公开路径，检查 token
-  if (pathname.startsWith('/api/')) {
-    const token = request.cookies.get('token')?.value
+  const token = request.cookies.get('token')?.value
 
-    if (!token) {
+  if (!token) {
+    // 如果是 API 路由，返回 401
+    if (pathname.startsWith('/api/')) {
       return NextResponse.json(
         { error: '未登录' },
         { status: 401 }
       )
     }
+    // 如果是页面路由，重定向到登录页
+    return NextResponse.redirect(new URL('/', request.url))
+  }
 
-    try {
-      await jwtVerify(
-        token,
-        new TextEncoder().encode(JWT_SECRET)
-      )
-      return NextResponse.next()
-    } catch (error) {
+  try {
+    // 验证 token
+    await jwtVerify(
+      token,
+      new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key')
+    )
+
+    // token 有效，放行请求
+    const response = NextResponse.next()
+
+    // 确保 token 在响应中也存在
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    })
+
+    return response
+  } catch (error) {
+    // 如果是 API 路由，返回 401
+    if (pathname.startsWith('/api/')) {
       return NextResponse.json(
         { error: '登录已过期' },
         { status: 401 }
       )
     }
-  }
-
-  // 如果是页面路由但不是公开路径，检查 token 并重定向
-  const token = request.cookies.get('token')?.value
-
-  if (!token) {
-    return NextResponse.redirect(new URL('/', request.url))
-  }
-
-  try {
-    await jwtVerify(
-      token,
-      new TextEncoder().encode(JWT_SECRET)
-    )
-    return NextResponse.next()
-  } catch (error) {
+    // 如果是页面路由，重定向到登录页
     return NextResponse.redirect(new URL('/', request.url))
   }
 }
