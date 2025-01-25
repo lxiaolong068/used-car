@@ -25,8 +25,8 @@ export async function GET() {
       process.env.JWT_SECRET || 'your-secret-key'
     ) as any
 
-    // 检查是否是管理员
-    if (decoded.role !== 'admin') {
+    // 检查是否是超级管理员或管理员
+    if (decoded.role !== 'super_admin' && decoded.role !== 'admin') {
       return NextResponse.json(
         { error: '无权限访问' },
         { status: 403 }
@@ -36,28 +36,39 @@ export async function GET() {
     // 获取用户列表
     const users = await prisma.user.findMany({
       select: {
-        id: true,
+        user_id: true,
         username: true,
-        role: true,
-        createdAt: true,
+        role: {
+          select: {
+            role_id: true,
+            role_name: true,
+            role_key: true
+          }
+        },
+        create_time: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        create_time: 'desc',
       },
     })
 
-    return NextResponse.json(users)
+    // 转换响应格式以保持与前端兼容
+    const formattedUsers = users.map(user => ({
+      user_id: user.user_id,
+      username: user.username,
+      role: user.role?.role_key || 'user',
+      create_time: user.create_time
+    }))
+
+    return NextResponse.json(formattedUsers)
   } catch (error: any) {
     console.error('获取用户列表失败:', error)
-
-    // 如果是 token 验证错误
     if (error.name === 'JsonWebTokenError') {
       return NextResponse.json(
-        { error: '登录已过期' },
+        { error: '无效的登录状态' },
         { status: 401 }
       )
     }
-
     return NextResponse.json(
       { error: '获取用户列表失败' },
       { status: 500 }
@@ -86,20 +97,20 @@ export async function POST(request: Request) {
       process.env.JWT_SECRET || 'your-secret-key'
     ) as any
 
-    // 检查是否是管理员
-    if (decoded.role !== 'admin') {
+    // 检查是否是超级管理员
+    if (decoded.role !== 'super_admin') {
       return NextResponse.json(
         { error: '无权限访问' },
         { status: 403 }
       )
     }
 
-    const { username, password, role } = await request.json()
+    const { username, password, role_id } = await request.json()
 
     // 验证必填字段
-    if (!username || !password) {
+    if (!username || !password || !role_id) {
       return NextResponse.json(
-        { error: '用户名和密码不能为空' },
+        { error: '用户名、密码和角色不能为空' },
         { status: 400 }
       )
     }
@@ -116,36 +127,46 @@ export async function POST(request: Request) {
       )
     }
 
-    // 加密密码
-    const hashedPassword = await bcrypt.hash(password, 8)
-
-    // 创建新用户
-    const newUser = await prisma.user.create({
-      data: {
-        username,
-        password: hashedPassword,
-        role: role || 'user',
-      },
-      select: {
-        id: true,
-        username: true,
-        role: true,
-        createdAt: true,
-      },
+    // 检查角色是否存在
+    const role = await prisma.role.findUnique({
+      where: { role_id: role_id },
     })
 
-    return NextResponse.json(newUser)
-  } catch (error: any) {
-    console.error('创建用户失败:', error)
-
-    // 如果是 token 验证错误
-    if (error.name === 'JsonWebTokenError') {
+    if (!role) {
       return NextResponse.json(
-        { error: '登录已过期' },
-        { status: 401 }
+        { error: '指定的角色不存在' },
+        { status: 400 }
       )
     }
 
+    // 创建用户
+    const hashedPassword = await bcrypt.hash(password, 8)
+    const user = await prisma.user.create({
+      data: {
+        username,
+        password: hashedPassword,
+        role_id: role_id,
+      },
+      select: {
+        user_id: true,
+        username: true,
+        role: {
+          select: {
+            role_key: true
+          }
+        },
+        create_time: true,
+      },
+    })
+
+    return NextResponse.json({
+      user_id: user.user_id,
+      username: user.username,
+      role: user.role?.role_key || 'user',
+      create_time: user.create_time
+    })
+  } catch (error) {
+    console.error('创建用户失败:', error)
     return NextResponse.json(
       { error: '创建用户失败' },
       { status: 500 }
