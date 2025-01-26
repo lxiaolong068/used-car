@@ -27,12 +27,11 @@ export default function UserMenu({ username }: { username: string }) {
   }
 
   return (
-    <Menu as="div" className="relative ml-3">
+    <Menu as="div" className="relative w-full">
       <div>
-        <Menu.Button className="flex items-center max-w-xs text-sm bg-white rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-          <span className="sr-only">打开用户菜单</span>
-          <UserCircleIcon className="w-8 h-8 text-gray-400" />
-          <span className="ml-2 text-gray-700">{username}</span>
+        <Menu.Button className="flex items-center w-full rounded-md text-sm text-gray-300 hover:text-white focus:outline-none">
+          <UserCircleIcon className="h-8 w-8 text-gray-300" />
+          <span className="ml-2 flex-1">{username}</span>
         </Menu.Button>
       </div>
       <Transition
@@ -44,7 +43,7 @@ export default function UserMenu({ username }: { username: string }) {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 w-48 py-1 mt-2 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+        <Menu.Items className="absolute left-0 bottom-full mb-2 w-48 origin-bottom-left rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
           <Menu.Item>
             {({ active }) => (
               <button
