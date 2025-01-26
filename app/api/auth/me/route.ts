@@ -16,11 +16,11 @@ export async function GET() {
     }
 
     // 验证 token
-    const decoded = verify(token.value, process.env.JWT_SECRET!) as { userId: number }
+    const decoded = verify(token.value, process.env.JWT_SECRET!) as { user_id: number }
     
     // 获取用户信息
     const user = await prisma.user.findUnique({
-      where: { user_id: decoded.userId },
+      where: { user_id: decoded.user_id },
       select: {
         username: true,
         role: {
@@ -31,9 +31,9 @@ export async function GET() {
       }
     })
 
-    if (!user) {
+    if (!user || !user.role) {
       return NextResponse.json(
-        { error: '用户不存在' },
+        { error: '用户不存在或角色无效' },
         { status: 404 }
       )
     }

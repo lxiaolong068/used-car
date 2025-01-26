@@ -28,12 +28,11 @@ export default function UserMenu({ username }: { username: string }) {
 
   return (
     <Menu as="div" className="relative">
-      <div>
-        <Menu.Button className="flex items-center text-sm rounded-full hover:opacity-80 focus:outline-none">
-          <UserCircleIcon className="h-8 w-8 text-gray-600" />
-          <span className="ml-2 text-gray-700">{username}</span>
-        </Menu.Button>
-      </div>
+      <Menu.Button className="flex items-center text-sm rounded-full hover:opacity-80 focus:outline-none">
+        <UserCircleIcon className="h-8 w-8 text-gray-600" />
+        <span className="ml-2 text-gray-700">{username}</span>
+      </Menu.Button>
+
       <Transition
         as={Fragment}
         enter="transition ease-out duration-100"

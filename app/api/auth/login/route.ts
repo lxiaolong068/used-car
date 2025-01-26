@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     // 生成 JWT token
     const token = jwt.sign(
       {
-        userId: user.user_id,
+        user_id: user.user_id,
         username: user.username,
         role: user.role.role_key,
       },

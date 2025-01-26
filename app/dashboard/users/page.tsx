@@ -34,7 +34,7 @@ export default function UsersPage() {
   const [formData, setFormData] = useState<FormData>({
     username: '',
     password: '',
-    role_id: 3
+    role_id: 7
   })
   const [formError, setFormError] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
@@ -104,7 +104,7 @@ export default function UsersPage() {
       setFormData({
         username: '',
         password: '',
-        role_id: 3
+        role_id: 7
       })
       setIsModalOpen(false)
 
@@ -121,7 +121,7 @@ export default function UsersPage() {
     setFormData({
       username: user.username,
       password: '', // 编辑时密码为空
-      role_id: userRole?.role_id || 3
+      role_id: userRole?.role_id || 7
     })
     setEditingUserId(user.user_id)
     setIsEditModalOpen(true)
@@ -151,7 +151,7 @@ export default function UsersPage() {
       setFormData({
         username: '',
         password: '',
-        role_id: 3
+        role_id: 7
       })
       setIsEditModalOpen(false)
       setEditingUserId(null)
@@ -373,7 +373,7 @@ export default function UsersPage() {
           setFormData({
             username: '',
             password: '',
-            role_id: 3
+            role_id: 7
           })
         }}
         title="编辑用户"

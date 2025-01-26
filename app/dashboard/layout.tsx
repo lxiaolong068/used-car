@@ -1,54 +1,110 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import UserMenu from '../components/UserMenu'
 import Link from 'next/link'
 import {
   HomeIcon,
   UsersIcon,
   TruckIcon,
-  CurrencyYenIcon
+  CurrencyYenIcon,
+  KeyIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline'
+import { MenuProvider, useMenu } from '../contexts/MenuContext'
 
-// 导航菜单项配置
-const navigation = [
-  { name: '仪表盘', href: '/dashboard', icon: HomeIcon },
-  { name: '用户管理', href: '/dashboard/users', icon: UsersIcon },
-  { name: '车辆管理', href: '/dashboard/cars', icon: TruckIcon },
-  { name: '费用管理', href: '/dashboard/costs', icon: CurrencyYenIcon },
-]
+// 图标映射
+const iconMap: { [key: string]: any } = {
+  HomeIcon,
+  UsersIcon,
+  TruckIcon,
+  CurrencyYenIcon,
+  KeyIcon,
+  ShieldCheckIcon
+}
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+interface Permission {
+  permission_id: number
+  parent_id: number | null
+  permission_name: string
+  permission_key: string
+  permission_type: 'menu' | 'button' | 'api'
+  path: string | null
+  component: string | null
+  icon: string | null
+  sort_order: number
+  status: number
+  create_time: string
+  children?: Permission[]
+}
+
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [username, setUsername] = useState('')
-  const [currentPath, setCurrentPath] = useState('')
+  const { menuItems } = useMenu()
 
   useEffect(() => {
     // 获取当前用户信息
     const fetchUserInfo = async () => {
       try {
         const response = await fetch('/api/auth/me')
-        if (response.ok) {
-          const data = await response.json()
-          setUsername(data.username)
-        } else {
-          // 如果未登录，重定向到登录页
+        if (!response.ok) {
+          throw new Error('获取用户信息失败')
+        }
+        const data = await response.json()
+        setUsername(data.username)
+      } catch (error: any) {
+        console.error('获取用户信息失败:', error)
+        // 只有在确实是未登录的情况下才跳转
+        if (error.message === '获取用户信息失败') {
           router.push('/')
         }
-      } catch (error) {
-        console.error('获取用户信息失败:', error)
-        router.push('/')
       }
     }
 
     fetchUserInfo()
-    setCurrentPath(window.location.pathname)
   }, [router])
+
+  // 递归渲染菜单项
+  const renderMenuItem = (item: Permission) => {
+    const Icon = item.icon ? iconMap[item.icon] : null
+
+    return (
+      <div key={item.permission_id}>
+        {item.path && (
+          <Link
+            href={item.path}
+            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+              pathname === item.path
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+            }`}
+          >
+            {Icon && (
+              <Icon
+                className={`mr-3 h-6 w-6 flex-shrink-0 ${
+                  pathname === item.path
+                    ? 'text-white'
+                    : 'text-gray-400 group-hover:text-white'
+                }`}
+                aria-hidden="true"
+              />
+            )}
+            {item.permission_name}
+          </Link>
+        )}
+        {item.children && item.children.length > 0 && (
+          <div className="ml-4 mt-1">
+            {item.children
+              .sort((a, b) => b.sort_order - a.sort_order)
+              .map((child) => renderMenuItem(child))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -61,30 +117,9 @@ export default function DashboardLayout({
               <span className="text-xl font-bold text-white">二手车管理系统</span>
             </div>
             <nav className="mt-5 flex-1 space-y-1 px-2">
-              {navigation.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                      currentPath === item.href
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
-                  >
-                    <Icon
-                      className={`mr-3 h-6 w-6 flex-shrink-0 ${
-                        currentPath === item.href
-                          ? 'text-white'
-                          : 'text-gray-400 group-hover:text-white'
-                      }`}
-                      aria-hidden="true"
-                    />
-                    {item.name}
-                  </Link>
-                )
-              })}
+              {menuItems
+                .sort((a: Permission, b: Permission) => b.sort_order - a.sort_order)
+                .map((item: Permission) => renderMenuItem(item))}
             </nav>
           </div>
         </div>
@@ -108,5 +143,17 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
+  )
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <MenuProvider>
+      <DashboardContent>{children}</DashboardContent>
+    </MenuProvider>
   )
 }

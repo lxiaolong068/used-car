@@ -26,126 +26,14 @@ async function verifyAdmin() {
   return decoded
 }
 
-export async function GET() {
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     await verifyAdmin()
 
-    // 获取角色列表
-    const roles = await prisma.role.findMany({
-      where: {
-        status: 1 // 只获取启用的角色
-      },
-      select: {
-        role_id: true,
-        role_name: true,
-        role_key: true,
-        description: true,
-        create_time: true
-      },
-      orderBy: {
-        role_id: 'asc'
-      }
-    })
-
-    console.log('获取到的角色列表:', roles)
-
-    return NextResponse.json(roles)
-  } catch (error: any) {
-    console.error('获取角色列表失败:', error)
-    if (error.message === '未登录' || error.name === 'JsonWebTokenError') {
-      return NextResponse.json(
-        { error: '无效的登录状态' },
-        { status: 401 }
-      )
-    }
-    if (error.message === '无权限访问') {
-      return NextResponse.json(
-        { error: '无权限访问' },
-        { status: 403 }
-      )
-    }
-    return NextResponse.json(
-      { error: '获取角色列表失败' },
-      { status: 500 }
-    )
-  } finally {
-    await prisma.$disconnect()
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    await verifyAdmin()
-
-    const data = await request.json()
-    const { role_name, role_key, description } = data
-
-    // 检查必要字段
-    if (!role_name || !role_key) {
-      return NextResponse.json(
-        { error: '角色名称和标识不能为空' },
-        { status: 400 }
-      )
-    }
-
-    // 检查角色标识是否已存在
-    const existingRole = await prisma.role.findFirst({
-      where: {
-        role_key,
-        status: 1
-      }
-    })
-
-    if (existingRole) {
-      return NextResponse.json(
-        { error: '角色标识已存在' },
-        { status: 400 }
-      )
-    }
-
-    // 创建新角色
-    const role = await prisma.role.create({
-      data: {
-        role_name,
-        role_key,
-        description,
-        status: 1,
-        create_time: new Date(),
-        update_time: new Date()
-      }
-    })
-
-    return NextResponse.json(role)
-  } catch (error: any) {
-    console.error('创建角色失败:', error)
-    if (error.message === '未登录' || error.name === 'JsonWebTokenError') {
-      return NextResponse.json(
-        { error: '无效的登录状态' },
-        { status: 401 }
-      )
-    }
-    if (error.message === '无权限访问') {
-      return NextResponse.json(
-        { error: '无权限访问' },
-        { status: 403 }
-      )
-    }
-    return NextResponse.json(
-      { error: '创建角色失败' },
-      { status: 500 }
-    )
-  } finally {
-    await prisma.$disconnect()
-  }
-}
-
-export async function PUT(request: Request) {
-  try {
-    await verifyAdmin()
-
-    const url = new URL(request.url)
-    const roleId = url.pathname.split('/').pop()
-
+    const roleId = params.id
     if (!roleId || isNaN(Number(roleId))) {
       return NextResponse.json(
         { error: '无效的角色ID' },
@@ -236,13 +124,14 @@ export async function PUT(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     await verifyAdmin()
 
-    const url = new URL(request.url)
-    const roleId = url.pathname.split('/').pop()
-
+    const roleId = params.id
     if (!roleId || isNaN(Number(roleId))) {
       return NextResponse.json(
         { error: '无效的角色ID' },

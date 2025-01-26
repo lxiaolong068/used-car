@@ -106,6 +106,8 @@ export async function POST(request: Request) {
     }
 
     const { username, password, role_id } = await request.json()
+    
+    console.log('添加用户请求数据:', { username, password, role_id })
 
     // 验证必填字段
     if (!username || !password || !role_id) {
@@ -131,6 +133,8 @@ export async function POST(request: Request) {
     const role = await prisma.role.findUnique({
       where: { role_id: role_id },
     })
+
+    console.log('查找到的角色:', role)
 
     if (!role) {
       return NextResponse.json(
