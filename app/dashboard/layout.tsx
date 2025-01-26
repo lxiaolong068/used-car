@@ -53,7 +53,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-100">
       {/* 侧边栏 */}
-      <div className="fixed inset-y-0 flex w-64 flex-col">
+      <div className="fixed inset-y-0 left-0 flex w-64 flex-col">
         {/* 侧边栏内容 */}
         <div className="flex min-h-0 flex-1 flex-col bg-gray-800">
           <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
@@ -87,15 +87,18 @@ export default function DashboardLayout({
               })}
             </nav>
           </div>
-          {/* 用户信息 */}
-          <div className="flex flex-shrink-0 bg-gray-700 p-4">
-            {username && <UserMenu username={username} />}
-          </div>
         </div>
       </div>
 
       {/* 主要内容区域 */}
       <div className="pl-64">
+        {/* 顶部状态栏 */}
+        <div className="sticky top-0 z-10 bg-gray-100 pl-4 pr-4 py-2 flex items-center justify-end border-b border-gray-200">
+          <div className="flex items-center">
+            {username && <UserMenu username={username} />}
+          </div>
+        </div>
+
         <main className="flex-1">
           <div className="py-6">
             <div className="mx-auto px-4 sm:px-6 md:px-8">
