@@ -71,6 +71,17 @@ async function main() {
       sort_order: 6,
       status: 1,
       parent_id: null
+    },
+    {
+      permission_name: '收入管理',
+      permission_key: 'revenue_management',
+      permission_type: 'menu',
+      path: '/dashboard/revenues',
+      component: null,
+      icon: 'BanknotesIcon',
+      sort_order: 7,
+      status: 1,
+      parent_id: null
     }
   ]
 
@@ -129,7 +140,6 @@ async function main() {
       }
     })
     console.log('超级管理员用户创建完成')
-
     console.log('数据库初始化完成')
   } catch (error) {
     console.error('初始化过程中出错:', error)

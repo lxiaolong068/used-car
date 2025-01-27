@@ -15,10 +15,23 @@ interface CarInfo {
   update_time: string | null
 }
 
+interface PaginationInfo {
+  current: number
+  pageSize: number
+  total: number
+}
+
 export default function CarsPage() {
   const [cars, setCars] = useState<CarInfo[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCar, setEditingCar] = useState<CarInfo | null>(null)
+  const [searchVin, setSearchVin] = useState('')
+  const [searchModel, setSearchModel] = useState('')
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    current: 1,
+    pageSize: 5,
+    total: 0
+  })
   const [formData, setFormData] = useState({
     vin: '',
     vehicle_model: '',
@@ -26,18 +39,36 @@ export default function CarsPage() {
     purchase_date: '',
     mileage: ''
   })
+  const [loading, setLoading] = useState(true)
 
   // 获取车辆列表
-  const fetchCars = async () => {
+  const fetchCars = async (page = 1) => {
+    setLoading(true)
     try {
-      const response = await fetch('/api/cars')
-      if (!response.ok) {
-        throw new Error('获取车辆列表失败')
-      }
+      const response = await fetch(
+        `/api/cars?page=${page}&pageSize=${pagination.pageSize}${
+          searchVin ? `&vin=${searchVin}` : ''
+        }${searchModel ? `&model=${searchModel}` : ''}`
+      )
+      if (!response.ok) throw new Error('获取车辆列表失败')
       const data = await response.json()
-      setCars(data)
+      
+      // 添加数据校验
+      if (!Array.isArray(data?.data)) {
+        throw new Error('返回数据格式错误')
+      }
+      
+      setCars(data.data || [])  // 确保总是数组
+      setPagination(data.pagination || {
+        current: 1,
+        pageSize: 5,
+        total: 0
+      })
     } catch (error) {
       console.error('获取车辆列表失败:', error)
+      setCars([])  // 出错时重置为空数组
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -118,6 +149,17 @@ export default function CarsPage() {
     }
   }
 
+  // 新增搜索处理
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, current: 1 }))
+    fetchCars(1)
+  }
+
+  // 新增分页处理
+  const handlePageChange = (page: number) => {
+    fetchCars(page)
+  }
+
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
@@ -139,65 +181,169 @@ export default function CarsPage() {
         </div>
       </div>
 
+      {/* 新增搜索区域 */}
+      <div className="mt-4 flex items-center gap-4">
+        <div className="w-48">
+          <input
+            type="text"
+            value={searchVin}
+            onChange={(e) => setSearchVin(e.target.value)}
+            placeholder="输入车架号"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        <div className="w-48">
+          <input
+            type="text"
+            value={searchModel}
+            onChange={(e) => setSearchModel(e.target.value)}
+            placeholder="输入车型"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+        <button
+          onClick={handleSearch}
+          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+        >
+          搜索
+        </button>
+      </div>
+
       {/* 车辆列表表格 */}
       <div className="mt-8 flex flex-col">
         <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
             <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      车架号
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      车型
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      登记日期
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      购买日期
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      里程数
-                    </th>
-                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                      <span className="sr-only">操作</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {cars.map((car) => (
-                    <tr key={car.vehicle_id}>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{car.vin}</td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{car.vehicle_model}</td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {format(new Date(car.register_date), 'yyyy-MM-dd')}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {format(new Date(car.purchase_date), 'yyyy-MM-dd')}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{car.mileage}</td>
-                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <button
-                          onClick={() => openModal(car)}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
-                        >
-                          <PencilIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(car.vehicle_id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
-                      </td>
+              {loading ? (
+                <div className="p-4 text-center text-gray-500">加载中...</div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-300">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        车架号
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        车型
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        登记日期
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        购买日期
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        里程数
+                      </th>
+                      <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                        <span className="sr-only">操作</span>
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {(cars || []).map((car) => (
+                      <tr key={car.vehicle_id}>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{car.vin}</td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{car.vehicle_model}</td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {format(new Date(car.register_date), 'yyyy-MM-dd')}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {format(new Date(car.purchase_date), 'yyyy-MM-dd')}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{car.mileage}</td>
+                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                          <button
+                            onClick={() => openModal(car)}
+                            className="text-indigo-600 hover:text-indigo-900 mr-4"
+                          >
+                            <PencilIcon className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(car.vehicle_id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 在表格后添加分页控件 */}
+      <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+        <div className="flex flex-1 justify-between sm:hidden">
+          <button
+            onClick={() => handlePageChange(pagination.current - 1)}
+            disabled={pagination.current === 1}
+            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            上一页
+          </button>
+          <button
+            onClick={() => handlePageChange(pagination.current + 1)}
+            disabled={pagination.current * pagination.pageSize >= pagination.total}
+            className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            下一页
+          </button>
+        </div>
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-gray-700">
+              显示第{' '}
+              <span className="font-medium">{(pagination.current - 1) * pagination.pageSize + 1}</span>
+              {' '}到{' '}
+              <span className="font-medium">
+                {Math.min(pagination.current * pagination.pageSize, pagination.total)}
+              </span>
+              {' '}条，共{' '}
+              <span className="font-medium">{pagination.total}</span>
+              {' '}条记录
+            </p>
+          </div>
+          <div>
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                onClick={() => handlePageChange(pagination.current - 1)}
+                disabled={pagination.current === 1}
+                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                <span className="sr-only">上一页</span>
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                </svg>
+              </button>
+              {Array.from({ length: Math.ceil(pagination.total / pagination.pageSize) }).map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                    pagination.current === index + 1
+                      ? 'z-10 bg-indigo-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                      : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(pagination.current + 1)}
+                disabled={pagination.current * pagination.pageSize >= pagination.total}
+                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                <span className="sr-only">下一页</span>
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </nav>
           </div>
         </div>
       </div>

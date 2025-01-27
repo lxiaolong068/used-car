@@ -14,6 +14,24 @@ const nextConfig = {
     // 暂时忽略 ESLint 错误，以便构建能够完成
     ignoreDuringBuilds: true,
   },
+  async headers() {
+    const securityHeaders = [
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff'
+      },
+      {
+        key: 'X-Frame-Options',
+        value: 'DENY'
+      }
+    ]
+    return [
+      {
+        source: '/:path*',
+        headers: securityHeaders,
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

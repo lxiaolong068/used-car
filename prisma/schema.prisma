@@ -17,6 +17,8 @@ model car_info {
   mileage       Decimal   @db.Decimal(5, 2)
   create_time   DateTime? @db.DateTime(0)
   update_time   DateTime? @db.DateTime(0)
+  cost_management cost_management[]
+  revenue_management revenue_management[]
 
   @@index([vehicle_model], map: "vehicle_model")
   @@index([vin], map: "vin")
@@ -26,13 +28,14 @@ model car_info {
 model cost_management {
   cost_id       Int       @id @default(autoincrement()) @db.UnsignedInt
   vehicle_id    Int       @db.UnsignedInt
-  amount        Decimal   @db.Decimal(5, 2)
+  amount        Decimal   @db.Decimal(10, 2)
   remark        String    @db.VarChar(255)
   type          String    @db.VarChar(20)
-  payment_phase Bytes     @db.TinyBlob
+  payment_phase Int       @db.UnsignedInt
   create_time   DateTime? @db.DateTime(0)
   update_time   DateTime? @db.DateTime(0)
   payment_date  DateTime  @db.DateTime(0)
+  car_info      car_info  @relation(fields: [vehicle_id], references: [vehicle_id])
 
   @@index([remark], map: "remark")
   @@index([type], map: "type")
@@ -66,6 +69,22 @@ model sale_info {
 
   @@index([buyer_info], map: "buyer_info")
   @@index([vehicle_id], map: "vehicle_id")
+}
+
+/// 收入管理表
+model revenue_management {
+  revenue_id    Int       @id @default(autoincrement()) @db.UnsignedInt
+  vehicle_id    Int       @db.UnsignedInt
+  amount        Decimal   @db.Decimal(10, 2)
+  remark        String    @db.VarChar(255)
+  revenue_phase Int       @db.UnsignedTinyInt
+  payment_date  DateTime  @db.DateTime(0)
+  create_time   DateTime? @default(now()) @db.DateTime(0)
+  update_time   DateTime? @updatedAt @db.DateTime(0)
+  car_info      car_info  @relation(fields: [vehicle_id], references: [vehicle_id])
+
+  @@index([vehicle_id], map: "vehicle_id")
+  @@index([remark], map: "remark")
 }
 
 model user {
