@@ -80,6 +80,8 @@ app/
    JWT_SECRET=your_jwt_secret
    NEXTAUTH_URL=https://your-domain.vercel.app
    NEXTAUTH_SECRET=your_nextauth_secret
+   NODE_ENV=production
+   PRISMA_GENERATE_DATAPROXY=true
    ```
 
 3. **一键部署**
@@ -96,6 +98,52 @@ app/
    - 访问你的 Vercel 域名
    - 检查所有功能是否正常
    - 查看环境变量是否生效
+
+### 常见部署问题解决
+
+1. **依赖相关错误**
+   如果遇到 "Module not found" 错误，请确保以下依赖已正确安装：
+   ```bash
+   npm install @headlessui/react jsonwebtoken
+   npm install --save-dev @types/jsonwebtoken
+   ```
+
+2. **Prisma 相关问题**
+   - 如果看到 Prisma 版本更新提示，可以选择更新到最新版本：
+     ```bash
+     npm install prisma@latest @prisma/client@latest
+     ```
+   - 或者保持当前版本，忽略警告（不影响功能）
+
+3. **构建失败问题**
+   - 确保 package.json 中的 scripts 包含：
+     ```json
+     {
+       "scripts": {
+         "vercel-build": "prisma generate && next build"
+       }
+     }
+     ```
+   - 检查 vercel.json 配置是否正确：
+     ```json
+     {
+       "buildCommand": "npm run vercel-build",
+       "env": {
+         "PRISMA_GENERATE_DATAPROXY": "true",
+         "NODE_ENV": "production"
+       }
+     }
+     ```
+
+4. **数据库连接问题**
+   - 确保数据库连接字符串格式正确
+   - 检查数据库是否允许外部连接
+   - 验证 IP 白名单设置
+
+5. **性能优化建议**
+   - 启用 Vercel Edge Functions
+   - 配置适当的缓存策略
+   - 使用 Vercel KV 存储
 
 ### 本地开发环境搭建
 
