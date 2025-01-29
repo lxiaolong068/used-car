@@ -1,64 +1,48 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { createContext, useContext, useCallback, ReactNode } from 'react'
+import useSWR from 'swr'
 
-interface Permission {
-  permission_id: number
-  parent_id: number | null
-  permission_name: string
-  permission_key: string
-  permission_type: 'menu' | 'button' | 'api'
-  path: string | null
-  component: string | null
-  icon: string | null
-  sort_order: number
-  status: number
-  create_time: string
-  children?: Permission[]
+interface MenuItem {
+  id: number
+  name: string
+  path: string
+  icon?: string
+  children?: MenuItem[]
 }
 
 interface MenuContextType {
-  menuItems: Permission[]
-  setMenuItems: (items: Permission[]) => void
+  menuItems: MenuItem[]
+  loading: boolean
+  error: Error | null
   refreshMenus: () => Promise<void>
 }
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined)
 
-export function MenuProvider({ children }: { children: React.ReactNode }) {
-  const [menuItems, setMenuItems] = useState<Permission[]>([])
-  const router = useRouter()
+const fetchMenus = async (url: string): Promise<MenuItem[]> => {
+  const res = await fetch(url)
+  if (!res.ok) {
+    throw new Error('Failed to fetch menus')
+  }
+  return res.json()
+}
 
-  const refreshMenus = async () => {
-    try {
-      const permissionsResponse = await fetch('/api/permissions/menu')
-      if (!permissionsResponse.ok) {
-        if (permissionsResponse.status === 401) {
-          router.push('/')
-          return
-        }
-        throw new Error('获取菜单失败')
-      }
-      const permissionsData = await permissionsResponse.json()
-      setMenuItems(permissionsData)
-    } catch (error: any) {
-      console.error('获取菜单失败:', error)
-      if (error.message === '获取菜单失败') {
-        router.push('/')
-      }
-    }
+export function MenuProvider({ children }: { children: ReactNode }) {
+  const { data, error, mutate } = useSWR<MenuItem[]>('/api/menus', fetchMenus)
+
+  const refreshMenus = useCallback(async () => {
+    await mutate()
+  }, [mutate])
+
+  const value = {
+    menuItems: data || [],
+    loading: !error && !data,
+    error: error || null,
+    refreshMenus,
   }
 
-  useEffect(() => {
-    refreshMenus()
-  }, [])
-
-  return (
-    <MenuContext.Provider value={{ menuItems, setMenuItems, refreshMenus }}>
-      {children}
-    </MenuContext.Provider>
-  )
+  return <MenuContext.Provider value={value}>{children}</MenuContext.Provider>
 }
 
 export function useMenu() {
