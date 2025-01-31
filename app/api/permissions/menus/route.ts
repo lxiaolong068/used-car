@@ -1,22 +1,30 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { verifyUser } from '@/lib/auth'
-import { Prisma } from '@prisma/client'
 
-type PermissionWithChildren = Prisma.permissionGetPayload<{
-  include: {
-    children: true
-  }
-}>
+interface RawPermission {
+  permission_id: string
+  parent_id: string | null
+  permission_name: string
+  permission_key: string
+  permission_type: string
+  path: string | null
+  icon: string | null
+  sort_order: string
+  status: string
+}
 
-// 递归构建菜单树
-function buildMenuTree(permissions: PermissionWithChildren[], parentId: number | null = null): PermissionWithChildren[] {
-  return permissions
-    .filter(item => item.parent_id === parentId)
-    .map(item => ({
-      ...item,
-      children: buildMenuTree(permissions, item.permission_id)
-    }))
+interface Permission {
+  permission_id: number
+  parent_id: number | null
+  permission_name: string
+  permission_key: string
+  permission_type: string
+  path: string | null
+  icon: string | null
+  sort_order: number
+  status: number
+  children: Permission[]
 }
 
 // 获取菜单列表
@@ -28,42 +36,53 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
 
-    // 获取用户的角色和权限
-    const userWithPermissions = await prisma.user.findUnique({
-      where: {
-        user_id: user.user_id
-      },
-      include: {
-        role: {
-          include: {
-            permissions: {
-              include: {
-                permission: {
-                  include: {
-                    children: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
+    // 获取用户的所有菜单权限
+    const permissions = await prisma.$queryRaw<RawPermission[]>`
+      SELECT 
+        CAST(p.permission_id AS CHAR) as permission_id,
+        CAST(p.parent_id AS CHAR) as parent_id,
+        p.permission_name,
+        p.permission_key,
+        p.permission_type,
+        p.path,
+        p.icon,
+        CAST(p.sort_order AS SIGNED) as sort_order,
+        CAST(p.status AS SIGNED) as status
+      FROM permission p
+      INNER JOIN role_permission rp ON p.permission_id = rp.permission_id
+      INNER JOIN role r ON rp.role_id = r.role_id
+      INNER JOIN user u ON u.role_id = r.role_id
+      WHERE u.user_id = ${user.user_id}
+      AND p.status = 1
+      AND p.permission_type = 'menu'
+      ORDER BY p.sort_order ASC
+    `
 
-    if (!userWithPermissions || !userWithPermissions.role) {
-      return NextResponse.json({ error: '用户不存在或未分配角色' }, { status: 404 })
+    if (!permissions || permissions.length === 0) {
+      return NextResponse.json([])
     }
 
-    // 提取用户的所有权限
-    const permissions = new Set<PermissionWithChildren>()
-    userWithPermissions.role.permissions.forEach(rolePermission => {
-      if (rolePermission.permission) {
-        permissions.add(rolePermission.permission as PermissionWithChildren)
-      }
-    })
+    // 将字符串ID转换回数字
+    const formattedPermissions = permissions.map(p => ({
+      ...p,
+      permission_id: parseInt(p.permission_id),
+      parent_id: p.parent_id ? parseInt(p.parent_id) : null,
+      sort_order: parseInt(p.sort_order),
+      status: parseInt(p.status),
+      children: []
+    }))
 
-    // 转换为数组并构建菜单树
-    const menuTree = buildMenuTree(Array.from(permissions))
+    // 构建菜单树
+    const buildMenuTree = (items: Permission[], parentId: number | null = null): Permission[] => {
+      return items
+        .filter(item => item.parent_id === parentId)
+        .map(item => ({
+          ...item,
+          children: buildMenuTree(items, item.permission_id)
+        }))
+    }
+
+    const menuTree = buildMenuTree(formattedPermissions)
 
     return NextResponse.json(menuTree)
   } catch (error) {

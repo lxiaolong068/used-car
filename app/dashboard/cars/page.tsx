@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, PencilIcon, TrashIcon, BanknotesIcon } from '@heroicons/react/24/outline'
 import { format } from 'date-fns'
+import toast, { Toaster } from 'react-hot-toast'
 
 interface CarInfo {
   vehicle_id: number
@@ -28,10 +29,19 @@ interface PaginationInfo {
   total: number
 }
 
+interface CostFormData {
+  amount: string
+  type: string
+  payment_phase: string
+  payment_date: string
+  remark: string
+}
+
 export default function CarsPage() {
   const [cars, setCars] = useState<CarInfo[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false)
+  const [isCostModalOpen, setIsCostModalOpen] = useState(false)
   const [selectedCarId, setSelectedCarId] = useState<number | null>(null)
   const [editingCar, setEditingCar] = useState<CarInfo | null>(null)
   const [revenueFormData, setRevenueFormData] = useState<RevenueFormData>({
@@ -55,6 +65,13 @@ export default function CarsPage() {
     mileage: ''
   })
   const [loading, setLoading] = useState(true)
+  const [costFormData, setCostFormData] = useState<CostFormData>({
+    amount: '',
+    type: '',
+    payment_phase: '1',
+    payment_date: format(new Date(), 'yyyy-MM-dd'),
+    remark: ''
+  })
 
   // 获取车辆列表
   const fetchCars = async (page = 1) => {
@@ -207,19 +224,89 @@ export default function CarsPage() {
       })
 
       if (!response.ok) {
-        throw new Error('添加收入记录失败')
+        const errorData = await response.json()
+        throw new Error(errorData.error || '添加收入记录失败')
       }
 
+      toast.success('添加收入记录成功')
       setIsRevenueModalOpen(false)
       // 可以选择是否刷新车辆列表
       // fetchCars(pagination.current)
-    } catch (error) {
+    } catch (error: any) {
       console.error('添加收入记录失败:', error)
+      toast.error(error.message || '添加收入记录失败')
+    }
+  }
+
+  // 打开费用表单模态框
+  const openCostModal = (carId: number) => {
+    setSelectedCarId(carId)
+    setCostFormData({
+      amount: '',
+      type: '',
+      payment_phase: '1',
+      payment_date: format(new Date(), 'yyyy-MM-dd'),
+      remark: ''
+    })
+    setIsCostModalOpen(true)
+  }
+
+  // 处理费用表单提交
+  const handleCostSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedCarId) return
+
+    try {
+      const response = await fetch('/api/costs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...costFormData,
+          vehicle_id: selectedCarId,
+          amount: parseFloat(costFormData.amount),
+          payment_phase: parseInt(costFormData.payment_phase)
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '添加费用记录失败')
+      }
+
+      toast.success('添加费用记录成功')
+      setIsCostModalOpen(false)
+    } catch (error: any) {
+      console.error('添加费用记录失败:', error)
+      toast.error(error.message || '添加费用记录失败')
     }
   }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+          success: {
+            iconTheme: {
+              primary: '#22c55e',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
           <h1 className="text-xl font-semibold text-gray-900">车辆管理</h1>
@@ -325,9 +412,15 @@ export default function CarsPage() {
                           </button>
                           <button
                             onClick={() => openRevenueModal(car.vehicle_id)}
-                            className="text-green-600 hover:text-green-900"
+                            className="text-green-600 hover:text-green-900 mr-4"
                           >
                             添加收入
+                          </button>
+                          <button
+                            onClick={() => openCostModal(car.vehicle_id)}
+                            className="text-yellow-600 hover:text-yellow-900"
+                          >
+                            添加费用
                           </button>
                         </td>
                       </tr>
@@ -582,6 +675,108 @@ export default function CarsPage() {
                 <button
                   type="button"
                   onClick={() => setIsRevenueModalOpen(false)}
+                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:text-sm"
+                >
+                  取消
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 费用表单模态框 */}
+      {isCostModalOpen && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
+              添加费用记录
+            </h3>
+            <form onSubmit={handleCostSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+                    费用金额
+                  </label>
+                  <input
+                    type="number"
+                    id="amount"
+                    value={costFormData.amount}
+                    onChange={(e) => setCostFormData({ ...costFormData, amount: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    required
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+                    费用类型
+                  </label>
+                  <select
+                    id="type"
+                    value={costFormData.type}
+                    onChange={(e) => setCostFormData({ ...costFormData, type: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    required
+                  >
+                    <option value="">请选择费用类型</option>
+                    <option value="maintenance">维修保养</option>
+                    <option value="insurance">保险费用</option>
+                    <option value="tax">税费</option>
+                    <option value="other">其他费用</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="payment_phase" className="block text-sm font-medium text-gray-700">
+                    付款阶段
+                  </label>
+                  <input
+                    type="number"
+                    id="payment_phase"
+                    value={costFormData.payment_phase}
+                    onChange={(e) => setCostFormData({ ...costFormData, payment_phase: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    required
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="payment_date" className="block text-sm font-medium text-gray-700">
+                    付款日期
+                  </label>
+                  <input
+                    type="date"
+                    id="payment_date"
+                    value={costFormData.payment_date}
+                    onChange={(e) => setCostFormData({ ...costFormData, payment_date: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="remark" className="block text-sm font-medium text-gray-700">
+                    备注
+                  </label>
+                  <input
+                    type="text"
+                    id="remark"
+                    value={costFormData.remark}
+                    onChange={(e) => setCostFormData({ ...costFormData, remark: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3">
+                <button
+                  type="submit"
+                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:text-sm"
+                >
+                  添加
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsCostModalOpen(false)}
                   className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:text-sm"
                 >
                   取消

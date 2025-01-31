@@ -115,9 +115,11 @@ model permission {
   parent_id       Int?      @db.UnsignedInt
   permission_name String    @db.VarChar(50)
   permission_key  String    @unique @db.VarChar(50)
+  permission_type String    @default("menu") @db.VarChar(20)
   path            String?   @db.VarChar(100)
   icon            String?   @db.VarChar(50)
   sort_order      Int       @default(0)
+  status          Int       @default(1) @db.TinyInt
   children        permission[] @relation("PermissionChildren")
   parent          permission? @relation("PermissionChildren", fields: [parent_id], references: [permission_id])
   roles           role_permission[] @relation("PermissionRoles")

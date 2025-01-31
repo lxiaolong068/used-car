@@ -30,6 +30,9 @@
   - 多角色权限控制
   - 操作日志记录
   - 数据访问控制
+  - 菜单权限状态管理
+  - 权限类型分级控制
+  - 菜单智能排序
 
 ## 技术栈
 
@@ -102,11 +105,25 @@ app/
 ### 常见部署问题解决
 
 1. **依赖相关错误**
-   如果遇到 "Module not found" 错误，请确保以下依赖已正确安装：
+   如果遇到 "Module not found" 错误，请确保运行以下命令安装所有必要依赖：
    ```bash
-   npm install @headlessui/react jsonwebtoken
-   npm install --save-dev @types/jsonwebtoken
+   # UI 组件依赖
+   npm install @headlessui/react@latest
+
+   # 认证相关依赖
+   npm install jsonwebtoken
+   npm install @types/jsonwebtoken --save-dev
+
+   # 数据库相关依赖
+   npm install prisma@latest @prisma/client@latest
+
+   # 如果还有其他缺失依赖，请根据错误提示安装
    ```
+
+   如果在 Vercel 部署时遇到依赖问题，可以：
+   1. 在本地安装完所有依赖后，确保 package.json 中已包含所有必要依赖
+   2. 提交更新后的 package.json 和 package-lock.json
+   3. 重新部署项目
 
 2. **Prisma 相关问题**
    - 如果看到 Prisma 版本更新提示，可以选择更新到最新版本：
@@ -156,6 +173,14 @@ app/
 2. **安装依赖**
    ```bash
    npm install
+
+   # 安装必要的额外依赖
+   npm install @headlessui/react@latest
+   npm install jsonwebtoken
+   npm install @types/jsonwebtoken --save-dev
+
+   # 更新 Prisma（如果需要）
+   npm install prisma@latest @prisma/client@latest
    ```
 
 3. **环境配置**
@@ -245,6 +270,14 @@ app/
    - 查看 Vercel 部署日志
 
 ## 更新日志
+
+### v0.1.0 (2024-01-28)
+- 权限管理功能增强
+  - 新增权限状态管理
+  - 新增权限类型分级
+  - 新增菜单智能排序
+  - 优化菜单显示逻辑
+  - 提升系统安全性
 
 ### v1.0.0 (2024-01-28)
 - 初始版本发布
