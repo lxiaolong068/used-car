@@ -36,6 +36,7 @@
 
 ## 技术栈
 
+- **运行环境**: Node.js (推荐 v20.9.0 或更高版本)
 - **前端框架**: Next.js 14
 - **编程语言**: TypeScript
 - **UI 框架**: Tailwind CSS
@@ -104,7 +105,24 @@ app/
 
 ### 常见部署问题解决
 
-1. **依赖相关错误**
+1. **Node.js 版本问题**
+   如果看到 "Unsupported engine" 警告，请确保：
+   - 升级 Node.js 到 v20.9.0 或更高版本
+   ```bash
+   # Windows 使用 nvm-windows 升级 Node.js
+   nvm install 20.9.0
+   nvm use 20.9.0
+
+   # Linux/Mac 使用 nvm 升级 Node.js
+   nvm install 20.9.0
+   nvm use 20.9.0
+   ```
+   - 或者使用 `--force` 强制安装（不推荐）
+   ```bash
+   npm install --force
+   ```
+
+2. **依赖相关错误**
    如果遇到 "Module not found" 错误，请确保运行以下命令安装所有必要依赖：
    ```bash
    # UI 组件依赖
@@ -125,14 +143,14 @@ app/
    2. 提交更新后的 package.json 和 package-lock.json
    3. 重新部署项目
 
-2. **Prisma 相关问题**
+3. **Prisma 相关问题**
    - 如果看到 Prisma 版本更新提示，可以选择更新到最新版本：
      ```bash
      npm install prisma@latest @prisma/client@latest
      ```
    - 或者保持当前版本，忽略警告（不影响功能）
 
-3. **构建失败问题**
+4. **构建失败问题**
    - 确保 package.json 中的 scripts 包含：
      ```json
      {
@@ -152,12 +170,12 @@ app/
      }
      ```
 
-4. **数据库连接问题**
+5. **数据库连接问题**
    - 确保数据库连接字符串格式正确
    - 检查数据库是否允许外部连接
    - 验证 IP 白名单设置
 
-5. **性能优化建议**
+6. **性能优化建议**
    - 启用 Vercel Edge Functions
    - 配置适当的缓存策略
    - 使用 Vercel KV 存储
@@ -268,6 +286,11 @@ app/
    - 检查数据库查询性能
    - 确认缓存策略是否生效
    - 查看 Vercel 部署日志
+
+4. **版本兼容性**
+   - 确保所有依赖的版本兼容
+   - 检查是否有版本不兼容的依赖
+   - 升级或替换不兼容的依赖
 
 ## 更新日志
 
