@@ -4,10 +4,17 @@ import { createContext, useContext, useCallback, ReactNode } from 'react'
 import useSWR from 'swr'
 
 interface MenuItem {
-  id: number
-  name: string
-  path: string
-  icon?: string
+  permission_id: number
+  parent_id: number | null
+  permission_name: string
+  permission_key: string
+  permission_type: 'menu' | 'button' | 'api'
+  path: string | null
+  component: string | null
+  icon: string | null
+  sort_order: number
+  status: number
+  create_time: string
   children?: MenuItem[]
 }
 
@@ -29,7 +36,7 @@ const fetchMenus = async (url: string): Promise<MenuItem[]> => {
 }
 
 export function MenuProvider({ children }: { children: ReactNode }) {
-  const { data, error, mutate } = useSWR<MenuItem[]>('/api/menus', fetchMenus)
+  const { data, error, mutate } = useSWR<MenuItem[]>('/api/permissions/menus', fetchMenus)
 
   const refreshMenus = useCallback(async () => {
     await mutate()

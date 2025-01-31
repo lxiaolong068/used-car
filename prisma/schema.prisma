@@ -9,15 +9,15 @@ datasource db {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model car_info {
-  vehicle_id    Int       @id @default(autoincrement()) @db.UnsignedInt
-  vin           String    @db.VarChar(50)
-  vehicle_model String    @db.VarChar(20)
-  register_date DateTime  @db.DateTime(0)
-  purchase_date DateTime  @db.DateTime(0)
-  mileage       Decimal   @db.Decimal(5, 2)
-  create_time   DateTime? @db.DateTime(0)
-  update_time   DateTime? @db.DateTime(0)
-  cost_management cost_management[]
+  vehicle_id         Int                  @id @default(autoincrement()) @db.UnsignedInt
+  vin                String               @db.VarChar(50)
+  vehicle_model      String               @db.VarChar(20)
+  register_date      DateTime             @db.DateTime(0)
+  purchase_date      DateTime             @db.DateTime(0)
+  mileage            Decimal              @db.Decimal(5, 2)
+  create_time        DateTime?            @db.DateTime(0)
+  update_time        DateTime?            @db.DateTime(0)
+  cost_management    cost_management[]
   revenue_management revenue_management[]
 
   @@index([vehicle_model], map: "vehicle_model")
@@ -99,39 +99,36 @@ model user {
 }
 
 model role {
-  role_id      Int       @id @default(autoincrement()) @db.UnsignedInt
-  role_name    String    @db.VarChar(50)
-  role_key     String    @unique @db.VarChar(50)
-  description  String?   @db.VarChar(255)
-  status      Int       @default(1) @db.TinyInt
-  create_time DateTime? @default(now()) @db.DateTime(0)
-  update_time DateTime? @updatedAt @db.DateTime(0)
-  users       user[]    @relation("UserRole")
+  role_id     Int               @id @default(autoincrement()) @db.UnsignedInt
+  role_name   String            @db.VarChar(50)
+  role_key    String            @unique @db.VarChar(50)
+  description String?           @db.VarChar(255)
+  status      Int               @default(1) @db.TinyInt
+  create_time DateTime?         @default(now()) @db.DateTime(0)
+  update_time DateTime?         @updatedAt @db.DateTime(0)
+  users       user[]            @relation("UserRole")
   permissions role_permission[] @relation("RolePermissions")
 }
 
 model permission {
   permission_id   Int       @id @default(autoincrement()) @db.UnsignedInt
-  parent_id      Int?      @db.UnsignedInt
+  parent_id       Int?      @db.UnsignedInt
   permission_name String    @db.VarChar(50)
   permission_key  String    @unique @db.VarChar(50)
-  permission_type String    @db.VarChar(20)
-  path          String?   @db.VarChar(255)
-  component     String?   @db.VarChar(255)
-  icon         String?   @db.VarChar(50)
-  sort_order    Int       @default(0)
-  status       Int       @default(1) @db.TinyInt
-  create_time  DateTime? @default(now()) @db.DateTime(0)
-  update_time  DateTime? @updatedAt @db.DateTime(0)
-  roles        role_permission[] @relation("PermissionRoles")
+  path            String?   @db.VarChar(100)
+  icon            String?   @db.VarChar(50)
+  sort_order      Int       @default(0)
+  children        permission[] @relation("PermissionChildren")
+  parent          permission? @relation("PermissionChildren", fields: [parent_id], references: [permission_id])
+  roles           role_permission[] @relation("PermissionRoles")
 }
 
 model role_permission {
-  role_id       Int         @db.UnsignedInt
-  permission_id Int         @db.UnsignedInt
-  create_time   DateTime?   @default(now()) @db.DateTime(0)
-  role          role        @relation("RolePermissions", fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
-  permission    permission  @relation("PermissionRoles", fields: [permission_id], references: [permission_id], onDelete: NoAction, onUpdate: NoAction)
+  role_id       Int        @db.UnsignedInt
+  permission_id Int        @db.UnsignedInt
+  create_time   DateTime?  @default(now()) @db.DateTime(0)
+  role          role       @relation("RolePermissions", fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+  permission    permission @relation("PermissionRoles", fields: [permission_id], references: [permission_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([role_id, permission_id])
   @@index([permission_id])

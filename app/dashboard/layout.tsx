@@ -24,7 +24,7 @@ const iconMap: { [key: string]: any } = {
   ShieldCheckIcon
 }
 
-interface Permission {
+interface MenuItem {
   permission_id: number
   parent_id: number | null
   permission_name: string
@@ -36,14 +36,14 @@ interface Permission {
   sort_order: number
   status: number
   create_time: string
-  children?: Permission[]
+  children?: MenuItem[]
 }
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const [username, setUsername] = useState('')
-  const { menuItems } = useMenu()
+  const { menuItems, loading } = useMenu()
 
   useEffect(() => {
     // 获取当前用户信息
@@ -68,7 +68,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   }, [router])
 
   // 递归渲染菜单项
-  const renderMenuItem = (item: Permission) => {
+  const renderMenuItem = (item: MenuItem) => {
     const Icon = item.icon ? iconMap[item.icon] : null
 
     return (
@@ -117,9 +117,15 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               <span className="text-xl font-bold text-white">二手车管理系统</span>
             </div>
             <nav className="mt-5 flex-1 space-y-1 px-2">
-              {menuItems
-                .sort((a: Permission, b: Permission) => b.sort_order - a.sort_order)
-                .map((item: Permission) => renderMenuItem(item))}
+              {loading ? (
+                <div className="text-gray-300 text-center py-4">加载中...</div>
+              ) : menuItems && menuItems.length > 0 ? (
+                menuItems
+                  .sort((a, b) => b.sort_order - a.sort_order)
+                  .map((item) => renderMenuItem(item))
+              ) : (
+                <div className="text-gray-300 text-center py-4">暂无菜单项</div>
+              )}
             </nav>
           </div>
         </div>
