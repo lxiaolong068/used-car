@@ -11,7 +11,8 @@
   "installCommand": "npm install",
   "outputDirectory": ".next",
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "PRISMA_CLIENT_ENGINE_TYPE": "dataproxy"
   },
   "regions": ["iad1"]
 }
