@@ -11,7 +11,6 @@
   "installCommand": "npm install",
   "outputDirectory": ".next",
   "env": {
-    "PRISMA_GENERATE_DATAPROXY": "true",
     "NODE_ENV": "production"
   },
   "regions": ["iad1"]
