@@ -1,13 +1,10 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
-  relationMode = "prisma"
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
