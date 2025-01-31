@@ -74,111 +74,126 @@ app/
 
 1. **准备工作**
    - 注册 [Vercel 账号](https://vercel.com)
-   - 准备好 MySQL 数据库（推荐使用 PlanetScale）
+   - 准备好远程 MySQL 数据库
    - Fork 本项目到你的 GitHub 账号
 
-2. **配置环境变量**
+2. **数据库配置**
+   - 确保远程 MySQL 数据库允许外部访问
+   - 数据库连接字符串格式：
+     ```
+     mysql://username:password@host:port/database
+     ```
+   - 数据库用户需要具有以下权限：
+     - SELECT, INSERT, UPDATE, DELETE
+     - CREATE, ALTER, DROP
+     - INDEX
+     - REFERENCES
+
+3. **配置环境变量**
    在 Vercel 项目设置中添加以下环境变量：
    ```
-   DATABASE_URL=your_mysql_connection_string
-   JWT_SECRET=your_jwt_secret
-   NEXTAUTH_URL=https://your-domain.vercel.app
-   NEXTAUTH_SECRET=your_nextauth_secret
+   DATABASE_URL=mysql://username:password@host:port/database
+   JWT_SECRET=your-jwt-secret
    NODE_ENV=production
-   PRISMA_GENERATE_DATAPROXY=true
    ```
 
-3. **一键部署**
+4. **一键部署**
    [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/used-car)
 
-4. **数据库迁移**
+5. **数据库初始化**
    ```bash
    # 本地执行数据库迁移
    npm run prisma:generate
    npm run prisma:push
    ```
 
-5. **验证部署**
-   - 访问你的 Vercel 域名
-   - 检查所有功能是否正常
-   - 查看环境变量是否生效
-
 ### 常见部署问题解决
 
-1. **Node.js 版本问题**
-   如果看到 "Unsupported engine" 警告，请确保：
-   - 升级 Node.js 到 v20.9.0 或更高版本
-   ```bash
-   # Windows 使用 nvm-windows 升级 Node.js
-   nvm install 20.9.0
-   nvm use 20.9.0
+1. **数据库连接问题**
+   - 确保数据库连接字符串格式正确
+   - 检查数据库是否允许外部连接
+   - 验证数据库用户权限
+   - 确保数据库端口（默认3306）开放
+   - 检查防火墙设置
 
-   # Linux/Mac 使用 nvm 升级 Node.js
-   nvm install 20.9.0
-   nvm use 20.9.0
-   ```
-   - 或者使用 `--force` 强制安装（不推荐）
-   ```bash
-   npm install --force
-   ```
+2. **环境变量问题**
+   - 在 Vercel 控制台中正确设置所有环境变量
+   - 确保环境变量名称完全匹配
+   - 验证连接字符串中的特殊字符是否正确编码
 
-2. **依赖相关错误**
-   如果遇到 "Module not found" 错误，请确保运行以下命令安装所有必要依赖：
-   ```bash
-   # UI 组件依赖
-   npm install @headlessui/react@latest
-
-   # 认证相关依赖
-   npm install jsonwebtoken
-   npm install @types/jsonwebtoken --save-dev
-
-   # 数据库相关依赖
-   npm install prisma@latest @prisma/client@latest
-
-   # 如果还有其他缺失依赖，请根据错误提示安装
-   ```
-
-   如果在 Vercel 部署时遇到依赖问题，可以：
-   1. 在本地安装完所有依赖后，确保 package.json 中已包含所有必要依赖
-   2. 提交更新后的 package.json 和 package-lock.json
-   3. 重新部署项目
-
-3. **Prisma 相关问题**
-   - 如果看到 Prisma 版本更新提示，可以选择更新到最新版本：
-     ```bash
-     npm install prisma@latest @prisma/client@latest
-     ```
-   - 或者保持当前版本，忽略警告（不影响功能）
-
-4. **构建失败问题**
+3. **构建失败问题**
    - 确保 package.json 中的 scripts 包含：
      ```json
      {
        "scripts": {
-         "vercel-build": "prisma generate && next build"
+         "vercel-build": "prisma generate && next build",
+         "postinstall": "prisma generate"
        }
      }
      ```
-   - 检查 vercel.json 配置是否正确：
+   - 检查 vercel.json 配置：
      ```json
      {
+       "version": 2,
+       "builds": [
+         {
+           "src": "package.json",
+           "use": "@vercel/next"
+         }
+       ],
+       "framework": "nextjs",
        "buildCommand": "npm run vercel-build",
+       "installCommand": "npm install",
+       "outputDirectory": ".next",
        "env": {
-         "PRISMA_GENERATE_DATAPROXY": "true",
          "NODE_ENV": "production"
        }
      }
      ```
 
-5. **数据库连接问题**
-   - 确保数据库连接字符串格式正确
-   - 检查数据库是否允许外部连接
-   - 验证 IP 白名单设置
+4. **Prisma 相关问题**
+   - 确保 schema.prisma 配置正确：
+     ```prisma
+     generator client {
+       provider = "prisma-client-js"
+     }
 
-6. **性能优化建议**
-   - 启用 Vercel Edge Functions
-   - 配置适当的缓存策略
-   - 使用 Vercel KV 存储
+     datasource db {
+       provider = "mysql"
+       url      = env("DATABASE_URL")
+     }
+     ```
+   - 执行 Prisma 命令进行故障排除：
+     ```bash
+     npx prisma generate
+     npx prisma db push
+     ```
+
+5. **性能优化建议**
+   - 使用数据库连接池
+   - 配置适当的超时时间
+   - 启用数据库查询缓存
+   - 使用合适的数据库索引
+
+### 安全建议
+
+1. **数据库安全**
+   - 使用强密码
+   - 限制数据库用户权限
+   - 定期更新数据库密码
+   - 配置数据库防火墙规则
+
+2. **环境变量安全**
+   - 使用强 JWT 密钥
+   - 不同环境使用不同的密钥
+   - 定期轮换密钥
+   - 避免在代码中硬编码敏感信息
+
+3. **应用安全**
+   - 启用 CORS 保护
+   - 配置安全响应头
+   - 实施速率限制
+   - 启用 SQL 注入防护
 
 ### 本地开发环境搭建
 
