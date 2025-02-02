@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verify } from 'jsonwebtoken'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -16,15 +16,24 @@ export async function GET() {
     }
 
     // 验证 token
-    const decoded = verify(token.value, process.env.JWT_SECRET!) as { user_id: number }
+    const decoded = verify(token.value, process.env.JWT_SECRET || 'your-secret-key') as { user_id: number }
     
+    if (!decoded || !decoded.user_id) {
+      return NextResponse.json(
+        { error: 'Token无效' },
+        { status: 401 }
+      )
+    }
+
     // 获取用户信息
     const user = await prisma.user.findUnique({
       where: { user_id: decoded.user_id },
       select: {
+        user_id: true,
         username: true,
         role: {
           select: {
+            role_id: true,
             role_name: true
           }
         }
@@ -39,8 +48,12 @@ export async function GET() {
     }
 
     return NextResponse.json({
+      user_id: user.user_id,
       username: user.username,
-      roleName: user.role.role_name
+      role: {
+        role_id: user.role.role_id,
+        role_name: user.role.role_name
+      }
     })
   } catch (error) {
     console.error('Get user info error:', error)

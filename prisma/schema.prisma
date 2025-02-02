@@ -93,7 +93,7 @@ model user {
   password    String    @db.VarChar(100)
   role_id     Int       @db.UnsignedInt
   create_time DateTime? @default(now()) @db.DateTime(0)
-  role        role?     @relation("UserRole", fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+  role        role      @relation("UserRole", fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([role_id])
 }
@@ -106,22 +106,23 @@ model role {
   status      Int               @default(1) @db.TinyInt
   create_time DateTime?         @default(now()) @db.DateTime(0)
   update_time DateTime?         @updatedAt @db.DateTime(0)
-  users       user[]            @relation("UserRole")
   permissions role_permission[] @relation("RolePermissions")
+  users       user[]            @relation("UserRole")
 }
 
 model permission {
-  permission_id   Int       @id @default(autoincrement()) @db.UnsignedInt
-  parent_id       Int?      @db.UnsignedInt
-  permission_name String    @db.VarChar(50)
-  permission_key  String    @unique @db.VarChar(50)
-  permission_type String    @default("menu") @db.VarChar(20)
-  path            String?   @db.VarChar(100)
-  icon            String?   @db.VarChar(50)
-  sort_order      Int       @default(0)
-  status          Int       @default(1) @db.TinyInt
-  children        permission[] @relation("PermissionChildren")
-  parent          permission? @relation("PermissionChildren", fields: [parent_id], references: [permission_id])
+  permission_id   Int               @id @default(autoincrement()) @db.UnsignedInt
+  parent_id       Int?              @db.UnsignedInt
+  permission_name String            @db.VarChar(50)
+  permission_key  String            @unique @db.VarChar(50)
+  permission_type String            @db.VarChar(20)
+  path            String?           @db.VarChar(255)
+  component       String?           @db.VarChar(255)
+  icon            String?           @db.VarChar(50)
+  sort_order      Int               @default(0)
+  status          Int               @default(1) @db.TinyInt
+  create_time     DateTime?         @default(now()) @db.DateTime(0)
+  update_time     DateTime?         @db.DateTime(0)
   roles           role_permission[] @relation("PermissionRoles")
 }
 
@@ -129,14 +130,9 @@ model role_permission {
   role_id       Int        @db.UnsignedInt
   permission_id Int        @db.UnsignedInt
   create_time   DateTime?  @default(now()) @db.DateTime(0)
-  role          role       @relation("RolePermissions", fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
   permission    permission @relation("PermissionRoles", fields: [permission_id], references: [permission_id], onDelete: NoAction, onUpdate: NoAction)
+  role          role       @relation("RolePermissions", fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([role_id, permission_id])
   @@index([permission_id])
-}
-
-enum user_role {
-  admin
-  user
 }

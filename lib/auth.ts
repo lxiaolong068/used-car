@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
-import prisma from './prisma'
+import { prisma } from './prisma'
 
 // 验证用户是否登录
 export async function verifyUser() {
