@@ -112,7 +112,7 @@ model role {
 
 model permission {
   permission_id   Int               @id @default(autoincrement()) @db.UnsignedInt
-  parent_id       Int?              @db.UnsignedInt
+  parent_id       Int?             @db.UnsignedInt
   permission_name String            @db.VarChar(50)
   permission_key  String            @unique @db.VarChar(50)
   permission_type String            @db.VarChar(20)
@@ -124,6 +124,12 @@ model permission {
   create_time     DateTime?         @default(now()) @db.DateTime(0)
   update_time     DateTime?         @db.DateTime(0)
   roles           role_permission[] @relation("PermissionRoles")
+  
+  // 添加自关联关系
+  parent    permission?  @relation("PermissionChildren", fields: [parent_id], references: [permission_id])
+  children  permission[] @relation("PermissionChildren")
+
+  @@index([parent_id])
 }
 
 model role_permission {

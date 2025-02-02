@@ -36,7 +36,16 @@ const fetchMenus = async (url: string): Promise<MenuItem[]> => {
 }
 
 export function MenuProvider({ children }: { children: ReactNode }) {
-  const { data, error, mutate } = useSWR<MenuItem[]>('/api/permissions/menus', fetchMenus)
+  const { data, error, mutate } = useSWR<MenuItem[]>(
+    '/api/permissions/menus',
+    fetchMenus,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      refreshInterval: 0,
+      dedupingInterval: 600000
+    }
+  )
 
   const refreshMenus = useCallback(async () => {
     await mutate()

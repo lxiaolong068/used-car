@@ -7,11 +7,20 @@
     }
   ],
   "framework": "nextjs",
-  "buildCommand": "npm run vercel-build",
-  "installCommand": "npm install",
+  "buildCommand": "pnpm run build",
+  "installCommand": "pnpm install",
   "outputDirectory": ".next",
   "env": {
     "NODE_ENV": "production"
+  },
+  "functions": {
+    "api/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "crons": {
+    "cleanup": "0 0 * * *"
   },
   "regions": ["iad1"]
 }
