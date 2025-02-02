@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { PlusIcon, PencilIcon, TrashIcon, BanknotesIcon } from '@heroicons/react/24/outline'
 import { format } from 'date-fns'
 import toast, { Toaster } from 'react-hot-toast'
+import VehicleFinancialModal from '@/app/components/cars/VehicleFinancialModal'
 
 interface CarInfo {
   vehicle_id: number
@@ -72,6 +73,8 @@ export default function CarsPage() {
     payment_date: format(new Date(), 'yyyy-MM-dd'),
     remark: ''
   })
+  const [isFinancialModalOpen, setIsFinancialModalOpen] = useState(false)
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null)
 
   // 获取车辆列表
   const fetchCars = async (page = 1) => {
@@ -283,6 +286,12 @@ export default function CarsPage() {
     }
   }
 
+  // 处理点击车辆信息
+  const handleVehicleClick = (vehicleId: number) => {
+    setSelectedVehicleId(vehicleId)
+    setIsFinancialModalOpen(true)
+  }
+
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <Toaster
@@ -388,8 +397,22 @@ export default function CarsPage() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {(cars || []).map((car) => (
                       <tr key={car.vehicle_id}>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{car.vin}</td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{car.vehicle_model}</td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm">
+                          <button
+                            onClick={() => handleVehicleClick(car.vehicle_id)}
+                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            {car.vin}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <button
+                            onClick={() => handleVehicleClick(car.vehicle_id)}
+                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            {car.vehicle_model}
+                          </button>
+                        </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {format(new Date(car.register_date), 'yyyy-MM-dd')}
                         </td>
@@ -786,6 +809,13 @@ export default function CarsPage() {
           </div>
         </div>
       )}
+
+      {/* 添加财务详情模态框 */}
+      <VehicleFinancialModal
+        isOpen={isFinancialModalOpen}
+        onClose={() => setIsFinancialModalOpen(false)}
+        vehicleId={selectedVehicleId}
+      />
     </div>
   )
 } 
