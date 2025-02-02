@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { verifyUser } from '@/lib/auth'
 
 // 获取车辆列表
@@ -28,14 +28,29 @@ export async function GET(request: Request) {
       where.vehicle_model = { contains: model }
     }
 
-    // 获取总数和分页数据
-    const [total, cars] = await prisma.$transaction([
+    // 使用 Promise.all 替代事务查询
+    const [total, cars] = await Promise.all([
       prisma.car_info.count({ where }),
       prisma.car_info.findMany({
         where,
         orderBy: { create_time: 'desc' },
         skip,
-        take: pageSize
+        take: pageSize,
+        include: {
+          cost_management: {
+            select: {
+              amount: true,
+              type: true,
+              payment_date: true
+            }
+          },
+          revenue_management: {
+            select: {
+              amount: true,
+              payment_date: true
+            }
+          }
+        }
       })
     ])
 
@@ -69,6 +84,15 @@ export async function POST(request: Request) {
     // 验证必填字段
     if (!vin || !vehicle_model || !register_date || !purchase_date || !mileage) {
       return NextResponse.json({ error: '缺少必填字段' }, { status: 400 })
+    }
+
+    // 检查 VIN 是否已存在
+    const existingCar = await prisma.car_info.findFirst({
+      where: { vin }
+    })
+
+    if (existingCar) {
+      return NextResponse.json({ error: 'VIN码已存在' }, { status: 400 })
     }
 
     // 创建新车辆记录
