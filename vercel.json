@@ -19,8 +19,5 @@
       "maxDuration": 10
     }
   },
-  "crons": {
-    "cleanup": "0 0 * * *"
-  },
   "regions": ["iad1"]
 }
