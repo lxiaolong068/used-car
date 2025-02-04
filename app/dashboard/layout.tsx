@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import UserMenu from '../components/UserMenu'
 import Link from 'next/link'
@@ -44,18 +44,34 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [username, setUsername] = useState('')
   const { menuItems, loading } = useMenu()
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     // 获取当前用户信息
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch('/api/auth/me')
+        // 如果有正在进行的请求，取消它
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort()
+        }
+
+        // 创建新的 AbortController
+        const abortController = new AbortController()
+        abortControllerRef.current = abortController
+
+        const response = await fetch('/api/auth/me', {
+          signal: abortController.signal
+        })
         if (!response.ok) {
           throw new Error('获取用户信息失败')
         }
         const data = await response.json()
         setUsername(data.username)
       } catch (error: any) {
+        // 如果是取消请求导致的错误，不做任何处理
+        if (error instanceof Error && error.name === 'AbortError') {
+          return
+        }
         console.error('获取用户信息失败:', error)
         // 只有在确实是未登录的情况下才跳转
         if (error.message === '获取用户信息失败') {
@@ -65,6 +81,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     }
 
     fetchUserInfo()
+
+    // 清理函数：组件卸载或依赖项变化时取消正在进行的请求
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
   }, [router])
 
   // 递归渲染菜单项

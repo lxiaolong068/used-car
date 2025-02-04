@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 import { PlusIcon, PencilIcon, TrashIcon, BanknotesIcon } from '@heroicons/react/24/outline'
 import { format } from 'date-fns'
 import toast, { Toaster } from 'react-hot-toast'
-import VehicleFinancialModal from '@/app/components/cars/VehicleFinancialModal'
+import VehicleFinancialModal from '../../components/cars/VehicleFinancialModal'
+import { RevenueForm } from '../../components/revenue/RevenueForm'
+import { Input } from '../../components/ui/input'
+import { Button } from '../../components/ui/button'
 
 interface CarInfo {
   vehicle_id: number
@@ -198,61 +201,46 @@ export default function CarsPage() {
   // 打开收入表单模态框
   const openRevenueModal = (carId: number) => {
     setSelectedCarId(carId)
-    setRevenueFormData({
-      amount: '',
-      revenue_phase: '',
-      payment_date: format(new Date(), 'yyyy-MM-dd'),
-      remark: ''
-    })
     setIsRevenueModalOpen(true)
   }
 
-  // 处理收入表单提交
-  const handleRevenueSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedCarId) return
-
-    try {
-      const response = await fetch('/api/revenues', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...revenueFormData,
-          vehicle_id: selectedCarId,
-          amount: parseFloat(revenueFormData.amount),
-          revenue_phase: parseInt(revenueFormData.revenue_phase)
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || '添加收入记录失败')
-      }
-
-      toast.success('添加收入记录成功')
-      setIsRevenueModalOpen(false)
-      // 可以选择是否刷新车辆列表
-      // fetchCars(pagination.current)
-    } catch (error: any) {
-      console.error('添加收入记录失败:', error)
-      toast.error(error.message || '添加收入记录失败')
-    }
+  // 处理点击车辆信息
+  const handleVehicleClick = (vehicleId: number) => {
+    setSelectedVehicleId(vehicleId)
+    setIsFinancialModalOpen(true)
   }
 
   // 打开费用表单模态框
-  const openCostModal = (carId: number) => {
-    setSelectedCarId(carId)
-    setCostFormData({
-      amount: '',
-      type: '',
-      payment_phase: '1',
-      payment_date: format(new Date(), 'yyyy-MM-dd'),
-      remark: ''
-    })
-    setIsCostModalOpen(true)
-  }
+  const openCostModal = async (carId: number) => {
+    setSelectedCarId(carId);
+    
+    try {
+      // 获取最新付款阶段
+      const response = await fetch(`/api/costs/latest-phase/${carId}`);
+      if (!response.ok) throw new Error('获取付款阶段失败');
+      const data = await response.json();
+      
+      setCostFormData({
+        amount: '',
+        type: '',
+        payment_phase: String(data.nextPhase),
+        payment_date: format(new Date(), 'yyyy-MM-dd'),
+        remark: ''
+      });
+    } catch (error) {
+      console.error('获取付款阶段失败:', error);
+      toast.error('获取付款阶段失败');
+      setCostFormData({
+        amount: '',
+        type: '',
+        payment_phase: '1',
+        payment_date: format(new Date(), 'yyyy-MM-dd'),
+        remark: ''
+      });
+    }
+    
+    setIsCostModalOpen(true);
+  };
 
   // 处理费用表单提交
   const handleCostSubmit = async (e: React.FormEvent) => {
@@ -286,36 +274,9 @@ export default function CarsPage() {
     }
   }
 
-  // 处理点击车辆信息
-  const handleVehicleClick = (vehicleId: number) => {
-    setSelectedVehicleId(vehicleId)
-    setIsFinancialModalOpen(true)
-  }
-
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-          success: {
-            iconTheme: {
-              primary: '#22c55e',
-              secondary: '#fff',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
-            },
-          },
-        }}
-      />
+    <div className="container mx-auto px-4 py-8">
+      <Toaster />
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
           <h1 className="text-xl font-semibold text-gray-900">车辆管理</h1>
@@ -624,198 +585,117 @@ export default function CarsPage() {
         </div>
       )}
 
-      {/* 收入表单模态框 */}
-      {isRevenueModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-              添加收入记录
-            </h3>
-            <form onSubmit={handleRevenueSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
-                    收款金额
-                  </label>
-                  <input
-                    type="number"
-                    id="amount"
-                    value={revenueFormData.amount}
-                    onChange={(e) => setRevenueFormData({ ...revenueFormData, amount: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    required
-                    step="0.01"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="revenue_phase" className="block text-sm font-medium text-gray-700">
-                    收款阶段
-                  </label>
-                  <input
-                    type="number"
-                    id="revenue_phase"
-                    value={revenueFormData.revenue_phase}
-                    onChange={(e) => setRevenueFormData({ ...revenueFormData, revenue_phase: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    required
-                    min="1"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="payment_date" className="block text-sm font-medium text-gray-700">
-                    收款日期
-                  </label>
-                  <input
-                    type="date"
-                    id="payment_date"
-                    value={revenueFormData.payment_date}
-                    onChange={(e) => setRevenueFormData({ ...revenueFormData, payment_date: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="remark" className="block text-sm font-medium text-gray-700">
-                    备注
-                  </label>
-                  <input
-                    type="text"
-                    id="remark"
-                    value={revenueFormData.remark}
-                    onChange={(e) => setRevenueFormData({ ...revenueFormData, remark: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3">
-                <button
-                  type="submit"
-                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:text-sm"
-                >
-                  添加
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsRevenueModalOpen(false)}
-                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:text-sm"
-                >
-                  取消
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* 费用表单模态框 */}
       {isCostModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
-              添加费用记录
-            </h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">添加费用记录</h2>
             <form onSubmit={handleCostSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
-                    费用金额
-                  </label>
-                  <input
+                  <label className="block text-sm font-medium text-gray-700">金额</label>
+                  <Input
                     type="number"
-                    id="amount"
-                    value={costFormData.amount}
-                    onChange={(e) => setCostFormData({ ...costFormData, amount: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    required
                     step="0.01"
+                    required
+                    value={costFormData.amount}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                      setCostFormData({ ...costFormData, amount: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-                    费用类型
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700">类型</label>
                   <select
-                    id="type"
-                    value={costFormData.type}
-                    onChange={(e) => setCostFormData({ ...costFormData, type: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
+                    value={costFormData.type}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => 
+                      setCostFormData({ ...costFormData, type: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
-                    <option value="">请选择费用类型</option>
-                    <option value="maintenance">维修保养</option>
-                    <option value="insurance">保险费用</option>
-                    <option value="tax">税费</option>
-                    <option value="other">其他费用</option>
+                    <option value="">请选择类型</option>
+                    <option value="维修">维修</option>
+                    <option value="保养">保养</option>
+                    <option value="保险">保险</option>
+                    <option value="其他">其他</option>
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="payment_phase" className="block text-sm font-medium text-gray-700">
-                    付款阶段
-                  </label>
-                  <input
+                  <label className="block text-sm font-medium text-gray-700">付款阶段</label>
+                  <Input
                     type="number"
-                    id="payment_phase"
+                    required
                     value={costFormData.payment_phase}
-                    onChange={(e) => setCostFormData({ ...costFormData, payment_phase: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    required
-                    min="1"
+                    readOnly
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50"
                   />
                 </div>
                 <div>
-                  <label htmlFor="payment_date" className="block text-sm font-medium text-gray-700">
-                    付款日期
-                  </label>
-                  <input
+                  <label className="block text-sm font-medium text-gray-700">付款日期</label>
+                  <Input
                     type="date"
-                    id="payment_date"
-                    value={costFormData.payment_date}
-                    onChange={(e) => setCostFormData({ ...costFormData, payment_date: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
+                    value={costFormData.payment_date}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                      setCostFormData({ ...costFormData, payment_date: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label htmlFor="remark" className="block text-sm font-medium text-gray-700">
-                    备注
-                  </label>
-                  <input
-                    type="text"
-                    id="remark"
+                  <label className="block text-sm font-medium text-gray-700">备注</label>
+                  <textarea
                     value={costFormData.remark}
-                    onChange={(e) => setCostFormData({ ...costFormData, remark: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    required
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
+                      setCostFormData({ ...costFormData, remark: e.target.value })
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
                 </div>
               </div>
-              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3">
-                <button
-                  type="submit"
-                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:text-sm"
-                >
-                  添加
-                </button>
-                <button
+              <div className="mt-6 flex justify-end space-x-3">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setIsCostModalOpen(false)}
-                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:text-sm"
                 >
                   取消
-                </button>
+                </Button>
+                <Button type="submit">
+                  提交
+                </Button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 添加财务详情模态框 */}
-      <VehicleFinancialModal
-        isOpen={isFinancialModalOpen}
-        onClose={() => setIsFinancialModalOpen(false)}
-        vehicleId={selectedVehicleId}
-      />
+      {/* 收入表单模态框 */}
+      {isRevenueModalOpen && selectedCarId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <RevenueForm
+              vehicleId={selectedCarId}
+              onSuccess={() => {
+                setIsRevenueModalOpen(false)
+                toast.success('添加收入记录成功')
+              }}
+              onCancel={() => setIsRevenueModalOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 财务信息模态框 */}
+      {isFinancialModalOpen && selectedVehicleId && (
+        <VehicleFinancialModal
+          isOpen={isFinancialModalOpen}
+          vehicleId={selectedVehicleId}
+          onClose={() => setIsFinancialModalOpen(false)}
+        />
+      )}
     </div>
   )
 } 

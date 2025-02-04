@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState, useRef } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { format } from 'date-fns'
 import { XMarkIcon } from '@heroicons/react/24/outline'
@@ -50,29 +50,52 @@ export default function VehicleFinancialModal({ isOpen, onClose, vehicleId }: Pr
   const [data, setData] = useState<FinancialData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (isOpen && vehicleId) {
+      const fetchData = async () => {
+        try {
+          // 如果有正在进行的请求，取消它
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+          }
+
+          // 创建新的 AbortController
+          const abortController = new AbortController()
+          abortControllerRef.current = abortController
+
+          setLoading(true)
+          setError(null)
+          const response = await fetch(`/api/cars/${vehicleId}/summary`, {
+            signal: abortController.signal
+          })
+          if (!response.ok) {
+            throw new Error('获取数据失败')
+          }
+          const data = await response.json()
+          setData(data)
+        } catch (error) {
+          // 如果是取消请求导致的错误，不显示错误提示
+          if (error instanceof Error && error.name === 'AbortError') {
+            return
+          }
+          setError(error instanceof Error ? error.message : '获取数据失败')
+        } finally {
+          setLoading(false)
+        }
+      }
+
       fetchData()
+
+      // 清理函数：组件卸载或依赖项变化时取消正在进行的请求
+      return () => {
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort()
+        }
+      }
     }
   }, [isOpen, vehicleId])
-
-  const fetchData = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const response = await fetch(`/api/cars/${vehicleId}/summary`)
-      if (!response.ok) {
-        throw new Error('获取数据失败')
-      }
-      const data = await response.json()
-      setData(data)
-    } catch (error) {
-      setError(error instanceof Error ? error.message : '获取数据失败')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>

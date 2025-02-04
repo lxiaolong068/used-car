@@ -141,10 +141,10 @@ export async function POST(request: Request) {
 
     // 获取请求数据
     const data = await request.json()
-    const { vehicle_id, amount, remark, type, payment_phase, payment_date } = data
+    const { vehicle_id, amount, remark = '', type, payment_phase, payment_date } = data
 
     // 验证必填字段
-    if (!vehicle_id || !amount || !remark || !type || !payment_phase || !payment_date) {
+    if (!vehicle_id || !amount || !type || !payment_phase || !payment_date) {
       return NextResponse.json({ error: '缺少必填字段' }, { status: 400 })
     }
 
