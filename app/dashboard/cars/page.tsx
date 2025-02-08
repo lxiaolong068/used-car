@@ -5,6 +5,8 @@ import { PlusIcon, PencilIcon, TrashIcon, BanknotesIcon } from '@heroicons/react
 import { format } from 'date-fns'
 import toast, { Toaster } from 'react-hot-toast'
 import VehicleFinancialModal from '../../components/cars/VehicleFinancialModal'
+import RevenueDetailModal from '../../components/cars/RevenueDetailModal'
+import CostDetailModal from '../../components/cars/CostDetailModal'
 import { RevenueForm } from '../../components/revenue/RevenueForm'
 import { Input } from '../../components/ui/input'
 import { Button } from '../../components/ui/button'
@@ -16,6 +18,8 @@ interface CarInfo {
   register_date: string
   purchase_date: string
   mileage: number
+  sale_date: string | null
+  customer_name: string | null
   create_time: string | null
   update_time: string | null
 }
@@ -39,6 +43,12 @@ interface CostFormData {
   payment_phase: string
   payment_date: string
   remark: string
+}
+
+interface Settlement {
+  totalRevenue: number;
+  totalCost: number;
+  profit: number;
 }
 
 export default function CarsPage() {
@@ -66,7 +76,9 @@ export default function CarsPage() {
     vehicle_model: '',
     register_date: '',
     purchase_date: '',
-    mileage: ''
+    mileage: '',
+    sale_date: '',
+    customer_name: ''
   })
   const [loading, setLoading] = useState(true)
   const [costFormData, setCostFormData] = useState<CostFormData>({
@@ -78,6 +90,12 @@ export default function CarsPage() {
   })
   const [isFinancialModalOpen, setIsFinancialModalOpen] = useState(false)
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null)
+  const [settlements, setSettlements] = useState<Record<number, Settlement>>({})
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [isRevenueDetailModalOpen, setIsRevenueDetailModalOpen] = useState(false)
+  const [selectedRevenueVehicleId, setSelectedRevenueVehicleId] = useState<number | null>(null)
+  const [isCostDetailModalOpen, setIsCostDetailModalOpen] = useState(false)
+  const [selectedCostVehicleId, setSelectedCostVehicleId] = useState<number | null>(null)
 
   // 获取车辆列表
   const fetchCars = async (page = 1) => {
@@ -123,7 +141,9 @@ export default function CarsPage() {
         vehicle_model: car.vehicle_model,
         register_date: format(new Date(car.register_date), 'yyyy-MM-dd'),
         purchase_date: format(new Date(car.purchase_date), 'yyyy-MM-dd'),
-        mileage: car.mileage.toString()
+        mileage: car.mileage.toString(),
+        sale_date: car.sale_date ? format(new Date(car.sale_date), 'yyyy-MM-dd') : '',
+        customer_name: car.customer_name || ''
       })
     } else {
       setEditingCar(null)
@@ -132,7 +152,9 @@ export default function CarsPage() {
         vehicle_model: '',
         register_date: '',
         purchase_date: '',
-        mileage: ''
+        mileage: '',
+        sale_date: '',
+        customer_name: ''
       })
     }
     setIsModalOpen(true)
@@ -274,17 +296,58 @@ export default function CarsPage() {
     }
   }
 
+  // 添加结算函数
+  const handleCalculate = async () => {
+    setIsCalculating(true)
+    try {
+      const results: Record<number, Settlement> = {}
+
+      // 并行处理所有车辆的结算
+      await Promise.all(cars.map(async (car) => {
+        const response = await fetch(`/api/cars/${car.vehicle_id}/settlement`)
+        if (response.ok) {
+          const data = await response.json()
+          results[car.vehicle_id] = {
+            totalRevenue: data.totalRevenue,
+            totalCost: data.totalCost,
+            profit: data.totalRevenue - data.totalCost
+          }
+        }
+      }))
+
+      setSettlements(results)
+      toast.success('结算完成')
+    } catch (error) {
+      console.error('结算失败:', error)
+      toast.error('结算失败')
+    } finally {
+      setIsCalculating(false)
+    }
+  }
+
+  // 打开收入明细模态框
+  const openRevenueDetail = (vehicleId: number) => {
+    setSelectedRevenueVehicleId(vehicleId)
+    setIsRevenueDetailModalOpen(true)
+  }
+
+  // 打开费用明细模态框
+  const openCostDetail = (vehicleId: number) => {
+    setSelectedCostVehicleId(vehicleId)
+    setIsCostDetailModalOpen(true)
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Toaster />
-      <div className="sm:flex sm:items-center">
+      <div className="sm:flex sm:items-start justify-between">
         <div className="sm:flex-auto">
           <h1 className="text-xl font-semibold text-gray-900">车辆管理</h1>
           <p className="mt-2 text-sm text-gray-700">
             管理系统中的所有车辆信息，包括车架号、车型、登记日期等。
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <div className="mt-4 sm:mt-0 flex flex-col gap-2">
           <button
             type="button"
             onClick={() => openModal()}
@@ -292,6 +355,14 @@ export default function CarsPage() {
           >
             <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
             添加车辆
+          </button>
+          <button
+            type="button"
+            onClick={handleCalculate}
+            disabled={isCalculating}
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:w-auto disabled:opacity-50"
+          >
+            {isCalculating ? '结算中...' : '结算'}
           </button>
         </div>
       </div>
@@ -342,13 +413,22 @@ export default function CarsPage() {
                         车型
                       </th>
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        登记日期
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         购买日期
                       </th>
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        里程数
+                        销售日期
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        客户名称
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">
+                        总收入
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">
+                        总费用
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">
+                        利润
                       </th>
                       <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                         <span className="sr-only">操作</span>
@@ -375,12 +455,36 @@ export default function CarsPage() {
                           </button>
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {format(new Date(car.register_date), 'yyyy-MM-dd')}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {format(new Date(car.purchase_date), 'yyyy-MM-dd')}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{car.mileage}</td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {car.sale_date ? format(new Date(car.sale_date), 'yyyy-MM-dd') : '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {car.customer_name || '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500">
+                          <button
+                            onClick={() => openRevenueDetail(car.vehicle_id)}
+                            className="hover:text-blue-600 hover:underline"
+                          >
+                            {settlements[car.vehicle_id]?.totalRevenue?.toLocaleString('zh-CN', { style: 'currency', currency: 'CNY' }) || '-'}
+                          </button>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500">
+                          <button
+                            onClick={() => openCostDetail(car.vehicle_id)}
+                            className="hover:text-blue-600 hover:underline"
+                          >
+                            {settlements[car.vehicle_id]?.totalCost?.toLocaleString('zh-CN', { style: 'currency', currency: 'CNY' }) || '-'}
+                          </button>
+                        </td>
+                        <td className={`whitespace-nowrap px-3 py-4 text-sm text-right ${
+                          settlements[car.vehicle_id]?.profit > 0 ? 'text-green-600' : 
+                          settlements[car.vehicle_id]?.profit < 0 ? 'text-red-600' : 'text-gray-500'
+                        }`}>
+                          {settlements[car.vehicle_id]?.profit?.toLocaleString('zh-CN', { style: 'currency', currency: 'CNY' }) || '-'}
+                        </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                           <button
                             onClick={() => openModal(car)}
@@ -564,6 +668,30 @@ export default function CarsPage() {
                     step="0.01"
                   />
                 </div>
+                <div>
+                  <label htmlFor="sale_date" className="block text-sm font-medium text-gray-700">
+                    销售日期
+                  </label>
+                  <input
+                    type="date"
+                    id="sale_date"
+                    value={formData.sale_date}
+                    onChange={(e) => setFormData({ ...formData, sale_date: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700">
+                    客户名称
+                  </label>
+                  <input
+                    type="text"
+                    id="customer_name"
+                    value={formData.customer_name}
+                    onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
               </div>
               <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3">
                 <button
@@ -616,10 +744,10 @@ export default function CarsPage() {
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
                     <option value="">请选择类型</option>
-                    <option value="维修">维修</option>
-                    <option value="保养">保养</option>
-                    <option value="保险">保险</option>
-                    <option value="其他">其他</option>
+                    <option value="maintenance">维修</option>
+                    <option value="service">保养</option>
+                    <option value="insurance">保险</option>
+                    <option value="other">其他</option>
                   </select>
                 </div>
                 <div>
@@ -694,6 +822,24 @@ export default function CarsPage() {
           isOpen={isFinancialModalOpen}
           vehicleId={selectedVehicleId}
           onClose={() => setIsFinancialModalOpen(false)}
+        />
+      )}
+
+      {/* 添加收入明细模态框 */}
+      {isRevenueDetailModalOpen && selectedRevenueVehicleId && (
+        <RevenueDetailModal
+          isOpen={isRevenueDetailModalOpen}
+          onClose={() => setIsRevenueDetailModalOpen(false)}
+          vehicleId={selectedRevenueVehicleId}
+        />
+      )}
+
+      {/* 添加费用明细模态框 */}
+      {isCostDetailModalOpen && selectedCostVehicleId && (
+        <CostDetailModal
+          isOpen={isCostDetailModalOpen}
+          onClose={() => setIsCostDetailModalOpen(false)}
+          vehicleId={selectedCostVehicleId}
         />
       )}
     </div>

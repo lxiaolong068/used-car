@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { verifyUser } from '@/lib/auth'
 
 // 获取单个车辆信息
@@ -56,7 +56,7 @@ export async function PUT(
 
     // 获取请求数据
     const data = await request.json()
-    const { vin, vehicle_model, register_date, purchase_date, mileage } = data
+    const { vin, vehicle_model, register_date, purchase_date, mileage, sale_date, customer_name } = data
 
     // 验证必填字段
     if (!vin || !vehicle_model || !register_date || !purchase_date || !mileage) {
@@ -74,6 +74,8 @@ export async function PUT(
         register_date: new Date(register_date),
         purchase_date: new Date(purchase_date),
         mileage: parseFloat(mileage),
+        sale_date: sale_date ? new Date(sale_date) : null,
+        customer_name: customer_name || null,
         update_time: new Date()
       }
     })

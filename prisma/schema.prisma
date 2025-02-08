@@ -17,11 +17,16 @@ model car_info {
   mileage            Decimal              @db.Decimal(5, 2)
   create_time        DateTime?            @db.DateTime(0)
   update_time        DateTime?            @db.DateTime(0)
+  /// @db.Comment("客户姓名")
+  customer_name      String?              @db.VarChar(100)
+  /// @db.Comment("销售日期")
+  sale_date          DateTime?            @db.DateTime(0)
   cost_management    cost_management[]
   revenue_management revenue_management[]
 
   @@index([vehicle_model], map: "vehicle_model")
   @@index([vin], map: "vin")
+  @@index([customer_name], map: "customer_name")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -112,7 +117,7 @@ model role {
 
 model permission {
   permission_id   Int               @id @default(autoincrement()) @db.UnsignedInt
-  parent_id       Int?             @db.UnsignedInt
+  parent_id       Int?              @db.UnsignedInt
   permission_name String            @db.VarChar(50)
   permission_key  String            @unique @db.VarChar(50)
   permission_type String            @db.VarChar(20)
@@ -123,11 +128,9 @@ model permission {
   status          Int               @default(1) @db.TinyInt
   create_time     DateTime?         @default(now()) @db.DateTime(0)
   update_time     DateTime?         @db.DateTime(0)
+  parent          permission?       @relation("PermissionChildren", fields: [parent_id], references: [permission_id])
+  children        permission[]      @relation("PermissionChildren")
   roles           role_permission[] @relation("PermissionRoles")
-  
-  // 添加自关联关系
-  parent    permission?  @relation("PermissionChildren", fields: [parent_id], references: [permission_id])
-  children  permission[] @relation("PermissionChildren")
 
   @@index([parent_id])
 }
