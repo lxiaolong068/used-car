@@ -210,157 +210,78 @@ pnpm test:coverage
 ### Vercel 部署（推荐）
 
 #### 前期准备
-1. 注册 [Vercel](https://vercel.com) 账号
-2. 安装 [Vercel CLI](https://vercel.com/cli)：
-   ```bash
-   pnpm install -g vercel
-   ```
-3. 登录 Vercel CLI：
-   ```bash
-   vercel login
-   ```
+1. 注册 [Vercel](https://vercel.com) 账号并关联 GitHub
+2. 准备好 PostgreSQL 数据库（推荐使用 [Supabase](https://supabase.com/)）
+3. 准备好必要的环境变量
 
 #### 部署步骤
 
-1. **Fork 或克隆项目**
-   - 访问 [项目仓库](https://github.com/yourusername/used-car)
-   - 点击 "Fork" 按钮创建自己的副本
-   - 或直接克隆项目到自己的 GitHub 账号下
-
-2. **导入项目到 Vercel**
+1. **导入项目到 Vercel**
    - 登录 [Vercel 控制台](https://vercel.com)
    - 点击 "New Project"
    - 选择你的 GitHub 仓库
    - 点击 "Import"
 
-3. **配置项目**
+2. **配置构建设置**
    
-   在 Vercel 项目设置中配置以下内容：
-
-   a. **构建配置**
-   - Framework Preset: Next.js
-   - Build Command: `pnpm build`
+   在项目配置页面中：
+   - Framework Preset: 选择 "Next.js"
+   - Build Command: 修改为 `pnpm install --no-frozen-lockfile && prisma generate && next build`
    - Output Directory: `.next`
    - Install Command: `pnpm install`
 
-   b. **环境变量**
-   添加以下必要的环境变量：
+3. **配置环境变量**
+   
+   在 "Environment Variables" 部分添加：
    ```
-   # 数据库配置
-   DATABASE_URL=
+   # 数据库配置（必需）
+   DATABASE_URL=postgresql://username:password@host:5432/database
 
-   # JWT 配置
-   JWT_SECRET=
+   # JWT 配置（必需）
+   JWT_SECRET=your-secure-jwt-secret
 
-   # Redis 配置（如果使用）
-   REDIS_URL=
-
-   # AWS S3 配置（如果使用）
-   AWS_ACCESS_KEY_ID=
-   AWS_SECRET_ACCESS_KEY=
-   AWS_REGION=
-   AWS_BUCKET_NAME=
-
-   # 其他配置
+   # Next.js 配置（必需）
    NEXTAUTH_URL=https://your-domain.vercel.app
-   NEXTAUTH_SECRET=
+   NEXTAUTH_SECRET=your-nextauth-secret
    NODE_ENV=production
    ```
 
-4. **数据库配置**
-   - 推荐使用 [PlanetScale](https://planetscale.com/) 或 [Railway](https://railway.app/) 托管 MySQL 数据库
-   - 或使用 [Supabase](https://supabase.com/) 托管 PostgreSQL 数据库
-   - 获取数据库连接 URL 并配置到 Vercel 环境变量
-
-5. **部署项目**
-   - 点击 "Deploy" 按钮开始部署
-   - Vercel 会自动执行构建和部署流程
-   - 部署完成后，你会获得一个 `.vercel.app` 域名
-
-#### 自动部署配置
-
-1. **配置 GitHub Actions**
-   在 `.github/workflows/vercel.yml` 中添加：
-   ```yaml
-   name: Vercel Production Deployment
-   on:
-     push:
-       branches: ["main"]
-   jobs:
-     deploy:
-       runs-on: ubuntu-latest
-       steps:
-         - uses: actions/checkout@v3
-         - uses: pnpm/action-setup@v2
-           with:
-             version: 8
-         - uses: actions/setup-node@v3
-           with:
-             node-version: 18
-             cache: 'pnpm'
-         - name: Install Dependencies
-           run: pnpm install
-         - name: Run Tests
-           run: pnpm test
-         - name: Deploy to Vercel
-           uses: amondnet/vercel-action@v20
-           with:
-             vercel-token: ${{ secrets.VERCEL_TOKEN }}
-             vercel-org-id: ${{ secrets.ORG_ID }}
-             vercel-project-id: ${{ secrets.PROJECT_ID }}
-             working-directory: ./
+4. **数据库迁移**
+   
+   首次部署前需要执行数据库迁移：
+   ```bash
+   # 本地执行
+   pnpm prisma migrate deploy
    ```
 
-2. **配置 GitHub Secrets**
-   在仓库的 Settings > Secrets 中添加：
-   - `VERCEL_TOKEN`: 从 Vercel 获取的 API token
-   - `ORG_ID`: Vercel 组织 ID
-   - `PROJECT_ID`: Vercel 项目 ID
+5. **检查部署**
+   - 确保所有环境变量已正确配置
+   - 点击 "Deploy" 开始部署
+   - 等待部署完成并检查构建日志
 
-#### 域名配置
+#### 常见部署问题
 
-1. **添加自定义域名**
-   - 在 Vercel 项目设置中点击 "Domains"
-   - 输入你的域名并点击 "Add"
-   - 按照提示配置 DNS 记录
+1. **依赖安装失败**
+   - 问题：pnpm install 报错
+   - 解决：在构建命令中添加 `--no-frozen-lockfile` 选项
 
-2. **配置 SSL 证书**
-   - Vercel 会自动为你的域名提供 SSL 证书
-   - 确保 DNS 记录正确配置以启用 HTTPS
+2. **数据库连接失败**
+   - 问题：无法连接数据库
+   - 解决：
+     - 检查 DATABASE_URL 格式
+     - 确保数据库允许 Vercel IP 访问
+     - 验证数据库凭据
 
-#### 部署后检查
+3. **Prisma 生成失败**
+   - 问题：prisma generate 报错
+   - 解决：确保构建命令中包含 `prisma generate`
 
-1. **验证部署**
-   - 访问部署后的网站
-   - 检查所有功能是否正常
-   - 验证环境变量是否生效
-
-2. **监控设置**
-   - 在 Vercel Analytics 中监控性能
-   - 设置警报通知
-   - 查看错误报告
-
-3. **性能优化**
-   - 检查 Vercel Analytics 中的性能指标
-   - 优化图片和静态资源
-   - 配置缓存策略
-
-#### 常见问题
-
-1. **部署失败**
-   - 检查构建日志
-   - 验证环境变量配置
-   - 确认依赖版本兼容性
-
-2. **数据库连接问题**
-   - 确认数据库连接字符串格式
-   - 检查数据库访问权限
-   - 验证 IP 白名单设置
-
-3. **性能问题**
-   - 使用 Vercel Edge Functions
-   - 配置 CDN 缓存
-   - 优化数据库查询
+4. **构建超时**
+   - 问题：部署时间过长导致超时
+   - 解决：
+     - 优化依赖安装
+     - 检查构建缓存配置
+     - 考虑使用 Turborepo
 
 ## 🤝 贡献指南
 
