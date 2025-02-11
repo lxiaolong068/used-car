@@ -21,6 +21,8 @@ model car_info {
   customer_name      String?              @db.VarChar(100)
   /// @db.Comment("销售日期")
   sale_date          DateTime?            @db.DateTime(0)
+  /// @db.Comment("销售状态：0-在售，1-已售")
+  sale_status        Int                  @default(0) @db.TinyInt
   cost_management    cost_management[]
   revenue_management revenue_management[]
 

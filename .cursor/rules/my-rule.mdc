@@ -4,4 +4,5 @@ globs:
 ---
 
 # Your rule content
-**"During development, unless explicitly requested by the user, avoid making changes to the existing interface, styles, and layout as much as possible."**
+- **"During development, unless explicitly requested by the user, avoid making changes to the existing interface, styles, and layout as much as possible."**
+- **"Place all script files in the `/scripts` directory and all SQL files in the `/data` directory."**

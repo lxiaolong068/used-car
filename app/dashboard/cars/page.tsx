@@ -22,6 +22,7 @@ interface CarInfo {
   customer_name: string | null
   create_time: string | null
   update_time: string | null
+  sale_status: number
 }
 
 interface RevenueFormData {
@@ -66,6 +67,7 @@ export default function CarsPage() {
   })
   const [searchVin, setSearchVin] = useState('')
   const [searchModel, setSearchModel] = useState('')
+  const [searchSaleStatus, setSearchSaleStatus] = useState<string>('0')
   const [pagination, setPagination] = useState<PaginationInfo>({
     current: 1,
     pageSize: 5,
@@ -78,7 +80,8 @@ export default function CarsPage() {
     purchase_date: '',
     mileage: '',
     sale_date: '',
-    customer_name: ''
+    customer_name: '',
+    sale_status: 0
   })
   const [loading, setLoading] = useState(true)
   const [costFormData, setCostFormData] = useState({
@@ -103,7 +106,9 @@ export default function CarsPage() {
       const response = await fetch(
         `/api/cars?page=${page}&pageSize=${pagination.pageSize}${
           searchVin ? `&vin=${searchVin}` : ''
-        }${searchModel ? `&model=${searchModel}` : ''}`
+        }${searchModel ? `&model=${searchModel}` : ''}${
+          searchSaleStatus !== 'all' ? `&saleStatus=${searchSaleStatus}` : ''
+        }`
       )
       if (!response.ok) throw new Error('获取车辆列表失败')
       const data = await response.json()
@@ -142,7 +147,8 @@ export default function CarsPage() {
         purchase_date: format(new Date(car.purchase_date), 'yyyy-MM-dd'),
         mileage: car.mileage.toString(),
         sale_date: car.sale_date ? format(new Date(car.sale_date), 'yyyy-MM-dd') : '',
-        customer_name: car.customer_name || ''
+        customer_name: car.customer_name || '',
+        sale_status: car.sale_status
       })
     } else {
       setEditingCar(null)
@@ -153,7 +159,8 @@ export default function CarsPage() {
         purchase_date: '',
         mileage: '',
         sale_date: '',
-        customer_name: ''
+        customer_name: '',
+        sale_status: 0
       })
     }
     setIsModalOpen(true)
@@ -168,12 +175,18 @@ export default function CarsPage() {
         : '/api/cars'
       const method = editingCar ? 'PUT' : 'POST'
       
+      // 确保 sale_status 是数字类型
+      const submitData = {
+        ...formData,
+        sale_status: Number(formData.sale_status)
+      }
+      
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(submitData)
       })
 
       if (!response.ok) {
@@ -182,8 +195,10 @@ export default function CarsPage() {
 
       setIsModalOpen(false)
       fetchCars()
+      toast.success(editingCar ? '更新成功' : '添加成功')
     } catch (error) {
       console.error('操作失败:', error)
+      toast.error('操作失败')
     }
   }
 
@@ -384,6 +399,20 @@ export default function CarsPage() {
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
+        <div className="w-32">
+          <select
+            value={searchSaleStatus}
+            onChange={(e) => {
+              setSearchSaleStatus(e.target.value);
+              setPagination(prev => ({ ...prev, current: 1 }));
+            }}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="all">全部</option>
+            <option value="0">在售</option>
+            <option value="1">已售</option>
+          </select>
+        </div>
         <button
           onClick={handleSearch}
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
@@ -417,6 +446,9 @@ export default function CarsPage() {
                       </th>
                       <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                         客户名称
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        销售状态
                       </th>
                       <th scope="col" className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">
                         总收入
@@ -459,6 +491,15 @@ export default function CarsPage() {
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {car.customer_name || '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                            car.sale_status === 1 
+                              ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20' 
+                              : 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-600/20'
+                          }`}>
+                            {car.sale_status === 1 ? '已售' : '在售'}
+                          </span>
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500">
                           <button
@@ -688,6 +729,20 @@ export default function CarsPage() {
                     onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
+                </div>
+                <div className="flex items-center">
+                  <label htmlFor="sale_status" className="block text-sm font-medium text-gray-700 w-24">
+                    销售状态
+                  </label>
+                  <select
+                    id="sale_status"
+                    value={formData.sale_status}
+                    onChange={(e) => setFormData({ ...formData, sale_status: parseInt(e.target.value) })}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  >
+                    <option value={0}>在售</option>
+                    <option value={1}>已售</option>
+                  </select>
                 </div>
               </div>
               <div className="mt-4 flex justify-end gap-3">

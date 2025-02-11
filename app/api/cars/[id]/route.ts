@@ -56,28 +56,40 @@ export async function PUT(
 
     // 获取请求数据
     const data = await request.json()
-    const { vin, vehicle_model, register_date, purchase_date, mileage, sale_date, customer_name } = data
+    const { vin, vehicle_model, register_date, purchase_date, mileage, sale_date, customer_name, sale_status } = data
 
     // 验证必填字段
     if (!vin || !vehicle_model || !register_date || !purchase_date || !mileage) {
       return NextResponse.json({ error: '缺少必填字段' }, { status: 400 })
     }
 
+    // 验证销售状态
+    const saleStatusNum = Number(sale_status)
+    if (isNaN(saleStatusNum) || ![0, 1].includes(saleStatusNum)) {
+      return NextResponse.json({ error: '无效的销售状态' }, { status: 400 })
+    }
+
     // 更新车辆信息
+    const updateData = {
+      vin,
+      vehicle_model,
+      register_date: new Date(register_date),
+      purchase_date: new Date(purchase_date),
+      mileage: parseFloat(mileage),
+      sale_date: sale_date ? new Date(sale_date) : null,
+      customer_name: customer_name || null,
+      update_time: new Date()
+    }
+
+    // 使用类型断言添加 sale_status
     const car = await prisma.car_info.update({
       where: {
         vehicle_id: vehicleId
       },
       data: {
-        vin,
-        vehicle_model,
-        register_date: new Date(register_date),
-        purchase_date: new Date(purchase_date),
-        mileage: parseFloat(mileage),
-        sale_date: sale_date ? new Date(sale_date) : null,
-        customer_name: customer_name || null,
-        update_time: new Date()
-      }
+        ...updateData,
+        sale_status: saleStatusNum
+      } as any
     })
 
     return NextResponse.json(car)

@@ -17,6 +17,7 @@ export async function GET(request: Request) {
     const pageSize = Math.min(Math.max(1, parseInt(searchParams.get('pageSize') || '5')), 100)
     const vin = searchParams.get('vin')
     const model = searchParams.get('model')
+    const saleStatus = searchParams.get('saleStatus')
     const skip = (page - 1) * pageSize
 
     // 构建查询条件
@@ -26,6 +27,9 @@ export async function GET(request: Request) {
     }
     if (model) {
       where.vehicle_model = { contains: model }
+    }
+    if (saleStatus !== null && saleStatus !== 'all' && saleStatus !== undefined) {
+      where.sale_status = parseInt(saleStatus)
     }
 
     // 使用 Promise.all 替代事务查询
