@@ -24,7 +24,6 @@ export async function GET(
         cost_management: {
           select: {
             amount: true,
-            type: true,
             payment_date: true,
             remark: true
           }
@@ -49,16 +48,6 @@ export async function GET(
       0
     )
 
-    // 按类型统计成本
-    const costByType = carInfo.cost_management.reduce((acc, item) => {
-      const type = item.type
-      if (!acc[type]) {
-        acc[type] = 0
-      }
-      acc[type] += Number(item.amount)
-      return acc
-    }, {} as Record<string, number>)
-
     // 计算总成本
     const totalCost = carInfo.cost_management.reduce(
       (sum, item) => sum + Number(item.amount),
@@ -79,8 +68,7 @@ export async function GET(
       financial_summary: {
         total_revenue: totalRevenue,
         total_cost: totalCost,
-        profit: profit,
-        cost_breakdown: costByType
+        profit: profit
       },
       details: {
         revenues: carInfo.revenue_management.map(rev => ({
@@ -90,7 +78,6 @@ export async function GET(
         })),
         costs: carInfo.cost_management.map(cost => ({
           amount: cost.amount,
-          type: cost.type,
           date: cost.payment_date,
           remark: cost.remark
         }))

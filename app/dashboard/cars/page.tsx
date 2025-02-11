@@ -81,12 +81,11 @@ export default function CarsPage() {
     customer_name: ''
   })
   const [loading, setLoading] = useState(true)
-  const [costFormData, setCostFormData] = useState<CostFormData>({
+  const [costFormData, setCostFormData] = useState({
     amount: '',
-    type: '',
+    remark: '',
     payment_phase: '1',
-    payment_date: format(new Date(), 'yyyy-MM-dd'),
-    remark: ''
+    payment_date: format(new Date(), 'yyyy-MM-dd')
   })
   const [isFinancialModalOpen, setIsFinancialModalOpen] = useState(false)
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null)
@@ -244,20 +243,18 @@ export default function CarsPage() {
       
       setCostFormData({
         amount: '',
-        type: '',
+        remark: '',
         payment_phase: String(data.nextPhase),
-        payment_date: format(new Date(), 'yyyy-MM-dd'),
-        remark: ''
+        payment_date: format(new Date(), 'yyyy-MM-dd')
       });
     } catch (error) {
       console.error('获取付款阶段失败:', error);
       toast.error('获取付款阶段失败');
       setCostFormData({
         amount: '',
-        type: '',
+        remark: '',
         payment_phase: '1',
-        payment_date: format(new Date(), 'yyyy-MM-dd'),
-        remark: ''
+        payment_date: format(new Date(), 'yyyy-MM-dd')
       });
     }
     
@@ -596,14 +593,14 @@ export default function CarsPage() {
       {/* 新增/编辑模态框 */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="bg-white rounded-lg p-6 max-w-3xl w-full">
             <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
               {editingCar ? '编辑车辆信息' : '添加新车辆'}
             </h3>
             <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="vin" className="block text-sm font-medium text-gray-700">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center">
+                  <label htmlFor="vin" className="block text-sm font-medium text-gray-700 w-24">
                     车架号
                   </label>
                   <input
@@ -611,12 +608,12 @@ export default function CarsPage() {
                     id="vin"
                     value={formData.vin}
                     onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                   />
                 </div>
-                <div>
-                  <label htmlFor="vehicle_model" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="vehicle_model" className="block text-sm font-medium text-gray-700 w-24">
                     车型
                   </label>
                   <input
@@ -624,12 +621,12 @@ export default function CarsPage() {
                     id="vehicle_model"
                     value={formData.vehicle_model}
                     onChange={(e) => setFormData({ ...formData, vehicle_model: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                   />
                 </div>
-                <div>
-                  <label htmlFor="register_date" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="register_date" className="block text-sm font-medium text-gray-700 w-24">
                     登记日期
                   </label>
                   <input
@@ -637,12 +634,12 @@ export default function CarsPage() {
                     id="register_date"
                     value={formData.register_date}
                     onChange={(e) => setFormData({ ...formData, register_date: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                   />
                 </div>
-                <div>
-                  <label htmlFor="purchase_date" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="purchase_date" className="block text-sm font-medium text-gray-700 w-24">
                     购买日期
                   </label>
                   <input
@@ -650,12 +647,12 @@ export default function CarsPage() {
                     id="purchase_date"
                     value={formData.purchase_date}
                     onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                   />
                 </div>
-                <div>
-                  <label htmlFor="mileage" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="mileage" className="block text-sm font-medium text-gray-700 w-24">
                     里程数
                   </label>
                   <input
@@ -663,13 +660,13 @@ export default function CarsPage() {
                     id="mileage"
                     value={formData.mileage}
                     onChange={(e) => setFormData({ ...formData, mileage: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                     step="0.01"
                   />
                 </div>
-                <div>
-                  <label htmlFor="sale_date" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="sale_date" className="block text-sm font-medium text-gray-700 w-24">
                     销售日期
                   </label>
                   <input
@@ -677,11 +674,11 @@ export default function CarsPage() {
                     id="sale_date"
                     value={formData.sale_date}
                     onChange={(e) => setFormData({ ...formData, sale_date: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
-                <div>
-                  <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700 w-24">
                     客户名称
                   </label>
                   <input
@@ -689,21 +686,21 @@ export default function CarsPage() {
                     id="customer_name"
                     value={formData.customer_name}
                     onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
               </div>
-              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3">
+              <div className="mt-4 flex justify-end gap-3">
                 <button
                   type="submit"
-                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:text-sm"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   {editingCar ? '更新' : '添加'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:text-sm"
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   取消
                 </button>
@@ -716,52 +713,40 @@ export default function CarsPage() {
       {/* 费用表单模态框 */}
       {isCostModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
             <h2 className="text-xl font-bold mb-4">添加费用记录</h2>
             <form onSubmit={handleCostSubmit}>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">金额</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={costFormData.amount}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                      setCostFormData({ ...costFormData, amount: e.target.value })
-                    }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  />
+                <div className="flex items-center">
+                  <label className="block text-sm font-medium text-gray-700 w-24">金额</label>
+                  <div className="relative flex-1">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <span className="text-gray-500 sm:text-sm">¥</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={costFormData.amount}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                        setCostFormData({ ...costFormData, amount: e.target.value })
+                      }
+                      className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">类型</label>
-                  <select
-                    required
-                    value={costFormData.type}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => 
-                      setCostFormData({ ...costFormData, type: e.target.value })
-                    }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  >
-                    <option value="">请选择类型</option>
-                    <option value="maintenance">维修</option>
-                    <option value="service">保养</option>
-                    <option value="insurance">保险</option>
-                    <option value="other">其他</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">付款阶段</label>
+                <div className="flex items-center">
+                  <label className="block text-sm font-medium text-gray-700 w-24">付款阶段</label>
                   <Input
                     type="number"
                     required
                     value={costFormData.payment_phase}
                     readOnly
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">付款日期</label>
+                <div className="flex items-center">
+                  <label className="block text-sm font-medium text-gray-700 w-24">付款日期</label>
                   <Input
                     type="date"
                     required
@@ -769,31 +754,35 @@ export default function CarsPage() {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
                       setCostFormData({ ...costFormData, payment_date: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">备注</label>
+                <div className="flex items-center">
+                  <label className="block text-sm font-medium text-gray-700 w-24">备注</label>
                   <textarea
                     value={costFormData.remark}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
                       setCostFormData({ ...costFormData, remark: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    rows={1}
                   />
                 </div>
               </div>
-              <div className="mt-6 flex justify-end space-x-3">
-                <Button
+              <div className="mt-4 flex justify-end gap-3">
+                <button
+                  type="submit"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  添加
+                </button>
+                <button
                   type="button"
-                  variant="outline"
                   onClick={() => setIsCostModalOpen(false)}
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   取消
-                </Button>
-                <Button type="submit">
-                  提交
-                </Button>
+                </button>
               </div>
             </form>
           </div>

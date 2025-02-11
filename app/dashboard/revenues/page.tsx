@@ -437,21 +437,21 @@ export default function RevenuesPage() {
       {/* 新增/编辑模态框 */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
             <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
               {editingRevenue ? '编辑收入信息' : '添加新收入'}
             </h3>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                <div>
-                  <label htmlFor="vehicle_id" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="vehicle_id" className="block text-sm font-medium text-gray-700 w-24">
                     选择车辆
                   </label>
                   <select
                     id="vehicle_id"
                     value={formData.vehicle_id}
                     onChange={(e) => setFormData({ ...formData, vehicle_id: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                   >
                     <option value="">请选择车辆</option>
@@ -462,11 +462,11 @@ export default function RevenuesPage() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="amount" className="block text-sm font-medium text-gray-700 w-24">
                     金额
                   </label>
-                  <div className="relative mt-1 rounded-md shadow-sm">
+                  <div className="relative flex-1">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       <span className="text-gray-500 sm:text-sm">¥</span>
                     </div>
@@ -475,15 +475,15 @@ export default function RevenuesPage() {
                       id="amount"
                       value={formData.amount}
                       onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                      className="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 pl-7 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       placeholder="0.00"
                       required
                       step="0.01"
                     />
                   </div>
                 </div>
-                <div>
-                  <label htmlFor="revenue_phase" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="revenue_phase" className="block text-sm font-medium text-gray-700 w-24">
                     收款阶段
                   </label>
                   <input
@@ -491,13 +491,13 @@ export default function RevenuesPage() {
                     id="revenue_phase"
                     value={formData.revenue_phase}
                     onChange={(e) => setFormData({ ...formData, revenue_phase: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                     min="1"
                   />
                 </div>
-                <div>
-                  <label htmlFor="payment_date" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="payment_date" className="block text-sm font-medium text-gray-700 w-24">
                     收款日期
                   </label>
                   <input
@@ -505,34 +505,34 @@ export default function RevenuesPage() {
                     id="payment_date"
                     value={formData.payment_date}
                     onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                   />
                 </div>
-                <div>
-                  <label htmlFor="remark" className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <label htmlFor="remark" className="block text-sm font-medium text-gray-700 w-24">
                     备注
                   </label>
                   <textarea
                     id="remark"
                     value={formData.remark}
                     onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
-                    rows={3}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    rows={1}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
               </div>
-              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3">
+              <div className="mt-4 flex justify-end gap-3">
                 <button
                   type="submit"
-                  className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:text-sm"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   {editingRevenue ? '更新' : '添加'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:text-sm"
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   取消
                 </button>

@@ -103,35 +103,40 @@ export function RevenueForm({ vehicleId, onSuccess, onCancel }: RevenueFormProps
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">收款金额</label>
-        <Input
-          type="number"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          placeholder="请输入收款金额"
-          required
-          min="0"
-          step="0.01"
-          className="mt-1"
-        />
+      <div className="flex items-center">
+        <label className="block text-sm font-medium text-gray-700 w-24">收款金额</label>
+        <div className="relative flex-1">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <span className="text-gray-500 sm:text-sm">¥</span>
+          </div>
+          <Input
+            type="number"
+            name="amount"
+            value={formData.amount}
+            onChange={handleChange}
+            placeholder="请输入收款金额"
+            required
+            min="0"
+            step="0.01"
+            className="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          />
+        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">备注</label>
+      <div className="flex items-center">
+        <label className="block text-sm font-medium text-gray-700 w-24">备注</label>
         <Input
           type="text"
           name="remark"
           value={formData.remark}
           onChange={handleChange}
           placeholder="请输入备注信息"
-          className="mt-1"
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">收款阶段</label>
+      <div className="flex items-center">
+        <label className="block text-sm font-medium text-gray-700 w-24">收款阶段</label>
         <Input
           type="number"
           name="revenue_phase"
@@ -141,19 +146,19 @@ export function RevenueForm({ vehicleId, onSuccess, onCancel }: RevenueFormProps
           required
           min="1"
           readOnly
-          className="mt-1"
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50"
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">收款日期</label>
+      <div className="flex items-center">
+        <label className="block text-sm font-medium text-gray-700 w-24">收款日期</label>
         <Input
           type="date"
           name="payment_date"
           value={formData.payment_date}
           onChange={handleChange}
           required
-          className="mt-1"
+          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
 

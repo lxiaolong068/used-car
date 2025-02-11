@@ -9,7 +9,6 @@ interface CostInfo {
   vehicle_id: number
   amount: number
   remark: string
-  type: string
   payment_phase: number
   payment_date: string
   create_time: string | null
@@ -38,7 +37,6 @@ export default function CostsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCost, setEditingCost] = useState<CostInfo | null>(null)
   const [searchVin, setSearchVin] = useState('')
-  const [searchType, setSearchType] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [totalAmount, setTotalAmount] = useState<number>(0)
@@ -51,20 +49,19 @@ export default function CostsPage() {
     vehicle_id: '',
     amount: '',
     remark: '',
-    type: '',
     payment_phase: '1',
     payment_date: format(new Date(), 'yyyy-MM-dd')
   })
 
   // 获取费用列表
-  const fetchCosts = async (page = 1, type = searchType) => {
+  const fetchCosts = async (page = 1) => {
     try {
       const response = await fetch(
         `/api/costs?page=${page}&pageSize=${pagination.pageSize}${
           searchVin ? `&vin=${searchVin}` : ''
-        }${type ? `&type=${type}` : ''}${
-          startDate ? `&startDate=${startDate}` : ''
-        }${endDate ? `&endDate=${endDate}` : ''}`
+        }${startDate ? `&startDate=${startDate}` : ''}${
+          endDate ? `&endDate=${endDate}` : ''
+        }`
       )
       if (!response.ok) {
         throw new Error('获取费用列表失败')
@@ -105,11 +102,6 @@ export default function CostsPage() {
     }
   }
 
-  // 处理费用类型变化
-  const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSearchType(e.target.value)
-  }
-
   // 处理日期变化
   const handleDateChange = () => {
     setPagination(prev => ({ ...prev, current: 1 })) // 重置到第一页
@@ -129,7 +121,6 @@ export default function CostsPage() {
         vehicle_id: cost.vehicle_id.toString(),
         amount: cost.amount.toString(),
         remark: cost.remark,
-        type: cost.type,
         payment_phase: cost.payment_phase.toString(),
         payment_date: format(new Date(cost.payment_date), 'yyyy-MM-dd')
       })
@@ -139,7 +130,6 @@ export default function CostsPage() {
         vehicle_id: '',
         amount: '',
         remark: '',
-        type: '',
         payment_phase: '1',
         payment_date: format(new Date(), 'yyyy-MM-dd')
       })
@@ -211,15 +201,6 @@ export default function CostsPage() {
     fetchCosts(page)
   }
 
-  // 获取费用类型选项
-  const costTypes = [
-    '收车款',
-    '保险',
-    '整备费',
-    '维修费',
-    '其他'
-  ]
-
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
@@ -227,7 +208,7 @@ export default function CostsPage() {
           <div className="flex items-center gap-x-3">
             <h1 className="text-xl font-semibold text-gray-900">费用管理</h1>
             <p className="text-sm text-gray-700">
-              管理系统中的所有费用记录，包括收车款、保险、整备费等。
+              管理系统中的所有费用记录。
             </p>
           </div>
         </div>
@@ -255,22 +236,6 @@ export default function CostsPage() {
               </svg>
             </button>
           </div>
-        </div>
-
-        {/* 费用类型筛选 */}
-        <div className="w-40">
-          <select
-            value={searchType}
-            onChange={handleTypeChange}
-            className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <option value="">全部费用类型</option>
-            {costTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* 开始日期 */}
@@ -330,9 +295,6 @@ export default function CostsPage() {
                       车型/车架号
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      费用类型
-                    </th>
-                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       金额
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
@@ -356,7 +318,6 @@ export default function CostsPage() {
                         <div>{cost.car_info?.vehicle_model}</div>
                         <div className="text-xs text-gray-400">{cost.car_info?.vin}</div>
                       </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{cost.type}</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">¥{cost.amount}</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">第 {cost.payment_phase} 期</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -389,7 +350,7 @@ export default function CostsPage() {
                     <td className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       ¥{Number(totalAmount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    <td colSpan={4}></td>
+                    <td colSpan={3}></td>
                   </tr>
                 </tfoot>
               </table>
@@ -415,58 +376,6 @@ export default function CostsPage() {
           >
             下一页
           </button>
-        </div>
-        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              显示第{' '}
-              <span className="font-medium">{(pagination.current - 1) * pagination.pageSize + 1}</span>
-              {' '}到{' '}
-              <span className="font-medium">
-                {Math.min(pagination.current * pagination.pageSize, pagination.total)}
-              </span>
-              {' '}条，共{' '}
-              <span className="font-medium">{pagination.total}</span>
-              {' '}条记录
-            </p>
-          </div>
-          <div>
-            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-              <button
-                onClick={() => handlePageChange(pagination.current - 1)}
-                disabled={pagination.current === 1}
-                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-              >
-                <span className="sr-only">上一页</span>
-                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
-                </svg>
-              </button>
-              {Array.from({ length: Math.ceil(pagination.total / pagination.pageSize) }).map((_, index) => (
-                <button
-                  key={index + 1}
-                  onClick={() => handlePageChange(index + 1)}
-                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                    pagination.current === index + 1
-                      ? 'z-10 bg-indigo-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
-                      : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-              <button
-                onClick={() => handlePageChange(pagination.current + 1)}
-                disabled={pagination.current * pagination.pageSize >= pagination.total}
-                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-              >
-                <span className="sr-only">下一页</span>
-                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </nav>
-          </div>
         </div>
       </div>
 
@@ -494,25 +403,6 @@ export default function CostsPage() {
                     {cars.map((car) => (
                       <option key={car.vehicle_id} value={car.vehicle_id}>
                         {car.vehicle_model} ({car.vin})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-                    费用类型
-                  </label>
-                  <select
-                    id="type"
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    required
-                  >
-                    <option value="">请选择费用类型</option>
-                    {costTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
                       </option>
                     ))}
                   </select>

@@ -35,7 +35,6 @@ model cost_management {
   vehicle_id    Int       @db.UnsignedInt
   amount        Decimal   @db.Decimal(10, 2)
   remark        String    @db.VarChar(255)
-  type          String    @db.VarChar(20)
   payment_phase Int       @db.UnsignedInt
   create_time   DateTime? @db.DateTime(0)
   update_time   DateTime? @db.DateTime(0)
@@ -43,7 +42,6 @@ model cost_management {
   car_info      car_info  @relation(fields: [vehicle_id], references: [vehicle_id])
 
   @@index([remark], map: "remark")
-  @@index([type], map: "type")
   @@index([vehicle_id], map: "vehicle_id")
 }
 

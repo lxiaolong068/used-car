@@ -40,7 +40,6 @@ export async function GET(request: Request) {
           cost_management: {
             select: {
               amount: true,
-              type: true,
               payment_date: true
             }
           },
