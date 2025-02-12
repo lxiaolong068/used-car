@@ -98,6 +98,11 @@ export default function CarsPage() {
   const [selectedRevenueVehicleId, setSelectedRevenueVehicleId] = useState<number | null>(null)
   const [isCostDetailModalOpen, setIsCostDetailModalOpen] = useState(false)
   const [selectedCostVehicleId, setSelectedCostVehicleId] = useState<number | null>(null)
+  const [totals, setTotals] = useState({
+    totalRevenue: 0,
+    totalCost: 0,
+    totalProfit: 0
+  })
 
   // 获取车辆列表
   const fetchCars = async (page = 1) => {
@@ -313,6 +318,9 @@ export default function CarsPage() {
     setIsCalculating(true)
     try {
       const results: Record<number, Settlement> = {}
+      let sumRevenue = 0
+      let sumCost = 0
+      let sumProfit = 0
 
       // 并行处理所有车辆的结算
       await Promise.all(cars.map(async (car) => {
@@ -324,10 +332,18 @@ export default function CarsPage() {
             totalCost: data.totalCost,
             profit: data.totalRevenue - data.totalCost
           }
+          sumRevenue += data.totalRevenue
+          sumCost += data.totalCost
+          sumProfit += (data.totalRevenue - data.totalCost)
         }
       }))
 
       setSettlements(results)
+      setTotals({
+        totalRevenue: sumRevenue,
+        totalCost: sumCost,
+        totalProfit: sumProfit
+      })
       toast.success('结算完成')
     } catch (error) {
       console.error('结算失败:', error)
@@ -552,6 +568,27 @@ export default function CarsPage() {
                       </tr>
                     ))}
                   </tbody>
+                  {/* 添加汇总行 */}
+                  <tfoot className="bg-gray-50">
+                    <tr>
+                      <td colSpan={6} className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">
+                        总计：
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-3.5 text-right text-sm font-semibold text-gray-900">
+                        {totals.totalRevenue.toLocaleString('zh-CN', { style: 'currency', currency: 'CNY' })}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-3.5 text-right text-sm font-semibold text-gray-900">
+                        {totals.totalCost.toLocaleString('zh-CN', { style: 'currency', currency: 'CNY' })}
+                      </td>
+                      <td className={`whitespace-nowrap px-3 py-3.5 text-right text-sm font-semibold ${
+                        totals.totalProfit > 0 ? 'text-green-600' : 
+                        totals.totalProfit < 0 ? 'text-red-600' : 'text-gray-900'
+                      }`}>
+                        {totals.totalProfit.toLocaleString('zh-CN', { style: 'currency', currency: 'CNY' })}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
                 </table>
               )}
             </div>
