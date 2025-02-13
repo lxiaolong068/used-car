@@ -1,18 +1,22 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRef, useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import UserMenu from '../components/UserMenu'
 import Link from 'next/link'
+import { useMenu } from '@/hooks/useMenu'
 import {
   HomeIcon,
   UsersIcon,
   TruckIcon,
   CurrencyYenIcon,
   KeyIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  Cog6ToothIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline'
-import { MenuProvider, useMenu } from '../contexts/MenuContext'
+import { MenuProvider, useMenu as useMenuContext } from '../contexts/MenuContext'
+import { jwtVerify } from 'jose'
 
 // 图标映射
 const iconMap: { [key: string]: any } = {
@@ -21,7 +25,9 @@ const iconMap: { [key: string]: any } = {
   TruckIcon,
   CurrencyYenIcon,
   KeyIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  Cog6ToothIcon,
+  DocumentTextIcon
 }
 
 interface MenuItem {
@@ -39,98 +45,95 @@ interface MenuItem {
   children?: MenuItem[]
 }
 
+interface UserInfo {
+  username: string;
+  role: string;
+}
+
 function DashboardContent({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [username, setUsername] = useState('')
-  const { menuItems, loading } = useMenu()
-  const abortControllerRef = useRef<AbortController | null>(null)
+  const { menuItems, loading, error } = useMenu();
+  const pathname = usePathname();
+  const [user, setUser] = useState<UserInfo | null>(null);
 
   useEffect(() => {
-    // 获取当前用户信息
-    const fetchUserInfo = async () => {
+    // 从 API 获取用户信息
+    const fetchUser = async () => {
       try {
-        // 如果有正在进行的请求，取消它
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort()
+        const response = await fetch('/api/auth/user');
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data);
+        } else {
+          console.error('获取用户信息失败');
         }
-
-        // 创建新的 AbortController
-        const abortController = new AbortController()
-        abortControllerRef.current = abortController
-
-        const response = await fetch('/api/auth/me', {
-          signal: abortController.signal
-        })
-        if (!response.ok) {
-          throw new Error('获取用户信息失败')
-        }
-        const data = await response.json()
-        setUsername(data.username)
-      } catch (error: any) {
-        // 如果是取消请求导致的错误，不做任何处理
-        if (error instanceof Error && error.name === 'AbortError') {
-          return
-        }
-        console.error('获取用户信息失败:', error)
-        // 只有在确实是未登录的情况下才跳转
-        if (error.message === '获取用户信息失败') {
-          router.push('/')
-        }
+      } catch (error) {
+        console.error('获取用户信息出错:', error);
       }
-    }
+    };
 
-    fetchUserInfo()
+    fetchUser();
+  }, []);
 
-    // 清理函数：组件卸载或依赖项变化时取消正在进行的请求
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-    }
-  }, [router])
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-xl text-gray-600">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          加载中...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-xl text-red-600">加载出错：{error}</div>
+      </div>
+    );
+  }
 
   // 递归渲染菜单项
   const renderMenuItem = (item: MenuItem) => {
-    const Icon = item.icon ? iconMap[item.icon] : null
+    const Icon = item.icon ? iconMap[item.icon] : null;
+
+    if (!item.path) {
+      return null;
+    }
 
     return (
       <div key={item.permission_id}>
-        {item.path && (
-          <Link
-            href={item.path}
-            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-              pathname === item.path
-                ? 'bg-gray-900 text-white'
-                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-            }`}
-          >
-            {Icon && (
-              <Icon
-                className={`mr-3 h-6 w-6 flex-shrink-0 ${
-                  pathname === item.path
-                    ? 'text-white'
-                    : 'text-gray-400 group-hover:text-white'
-                }`}
-                aria-hidden="true"
-              />
-            )}
-            {item.permission_name}
-          </Link>
-        )}
+        <Link
+          href={item.path}
+          className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+            pathname === item.path
+              ? 'bg-gray-900 text-white'
+              : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+          }`}
+        >
+          {Icon && (
+            <Icon
+              className={`mr-3 h-6 w-6 flex-shrink-0 ${
+                pathname === item.path
+                  ? 'text-white'
+                  : 'text-gray-400 group-hover:text-white'
+              }`}
+              aria-hidden="true"
+            />
+          )}
+          {item.permission_name}
+        </Link>
         {item.children && item.children.length > 0 && (
-          <div className="ml-4 mt-1">
-            {item.children
-              .sort((a, b) => b.sort_order - a.sort_order)
-              .map((child) => renderMenuItem(child))}
+          <div className="ml-4 mt-1 space-y-1">
+            {item.children.map((child) => renderMenuItem(child))}
           </div>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100">
       {/* 侧边栏 */}
       <div className="fixed inset-y-0 left-0 flex w-64 flex-col">
         {/* 侧边栏内容 */}
@@ -140,30 +143,24 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               <span className="text-xl font-bold text-white">二手车管理系统</span>
             </div>
             <nav className="mt-5 flex-1 space-y-1 px-2">
-              {loading ? (
-                <div className="text-gray-300 text-center py-4">加载中...</div>
-              ) : menuItems && menuItems.length > 0 ? (
-                menuItems
-                  .sort((a, b) => b.sort_order - a.sort_order)
-                  .map((item) => renderMenuItem(item))
-              ) : (
-                <div className="text-gray-300 text-center py-4">暂无菜单项</div>
-              )}
+              {menuItems?.map((item: MenuItem) => renderMenuItem(item))}
             </nav>
           </div>
         </div>
       </div>
 
       {/* 主要内容区域 */}
-      <div className="pl-64">
-        {/* 顶部状态栏 */}
-        <div className="sticky top-0 z-10 bg-gray-100 pl-4 pr-4 py-2 flex items-center justify-end border-b border-gray-200">
+      <div className="pl-64 flex flex-1 flex-col">
+        {/* 顶部导航栏 */}
+        <div className="sticky top-0 z-10 bg-white pl-4 pr-4 py-2 flex items-center justify-between border-b border-gray-200">
+          <div className="flex-1"></div>
           <div className="flex items-center">
-            {username && <UserMenu username={username} />}
+            {user && <UserMenu username={user.username} role={user.role} />}
           </div>
         </div>
 
-        <main className="flex-1">
+        {/* 主要内容 */}
+        <main className="flex-1 overflow-y-auto">
           <div className="py-6">
             <div className="mx-auto px-4 sm:px-6 md:px-8">
               {children}
@@ -172,7 +169,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
-  )
+  );
 }
 
 export default function DashboardLayout({

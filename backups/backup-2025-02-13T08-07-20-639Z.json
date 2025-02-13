@@ -1,0 +1,267 @@
+{
+  "timestamp": "2025-02-13T08:07:23.979Z",
+  "tables": {
+    "car_info": [
+      {
+        "vehicle_id": 1,
+        "vin": "48331",
+        "vehicle_model": "小米su7",
+        "register_date": "2025-02-01T00:00:00.000Z",
+        "purchase_date": "2025-02-01T00:00:00.000Z",
+        "mileage": "231",
+        "create_time": "2025-02-11T09:17:44.000Z",
+        "update_time": "2025-02-12T09:51:34.000Z",
+        "customer_name": null,
+        "sale_date": null,
+        "sale_status": 0
+      },
+      {
+        "vehicle_id": 2,
+        "vin": "24678",
+        "vehicle_model": "奔驰c260",
+        "register_date": "2025-02-06T00:00:00.000Z",
+        "purchase_date": "2025-02-06T00:00:00.000Z",
+        "mileage": "345",
+        "create_time": "2025-02-11T18:14:13.000Z",
+        "update_time": "2025-02-11T18:14:13.000Z",
+        "customer_name": null,
+        "sale_date": null,
+        "sale_status": 0
+      }
+    ],
+    "cost_management": [
+      {
+        "cost_id": 1,
+        "vehicle_id": 1,
+        "amount": "80000",
+        "remark": "收车费",
+        "payment_phase": 1,
+        "create_time": "2025-02-11T10:10:49.000Z",
+        "update_time": "2025-02-11T10:10:49.000Z",
+        "payment_date": "2025-02-01T00:00:00.000Z"
+      },
+      {
+        "cost_id": 2,
+        "vehicle_id": 1,
+        "amount": "300",
+        "remark": "维修费",
+        "payment_phase": 2,
+        "create_time": "2025-02-11T17:29:17.000Z",
+        "update_time": "2025-02-11T17:29:17.000Z",
+        "payment_date": "2025-02-12T00:00:00.000Z"
+      },
+      {
+        "cost_id": 3,
+        "vehicle_id": 2,
+        "amount": "50000",
+        "remark": "收车款",
+        "payment_phase": 1,
+        "create_time": "2025-02-11T18:14:58.000Z",
+        "update_time": "2025-02-11T18:14:58.000Z",
+        "payment_date": "2025-02-12T00:00:00.000Z"
+      }
+    ],
+    "revenue_management": [
+      {
+        "revenue_id": 1,
+        "vehicle_id": 1,
+        "amount": "10000",
+        "remark": "第一笔收款",
+        "revenue_phase": 1,
+        "payment_date": "2025-02-11T00:00:00.000Z",
+        "create_time": "2025-02-11T10:10:10.000Z",
+        "update_time": "2025-02-11T10:10:10.000Z"
+      },
+      {
+        "revenue_id": 2,
+        "vehicle_id": 1,
+        "amount": "100000",
+        "remark": "第二次卖车款",
+        "revenue_phase": 2,
+        "payment_date": "2025-02-11T00:00:00.000Z",
+        "create_time": "2025-02-11T10:11:35.000Z",
+        "update_time": "2025-02-11T10:11:35.000Z"
+      },
+      {
+        "revenue_id": 3,
+        "vehicle_id": 1,
+        "amount": "10000",
+        "remark": "收车款",
+        "revenue_phase": 3,
+        "payment_date": "2025-02-11T00:00:00.000Z",
+        "create_time": "2025-02-11T17:29:53.000Z",
+        "update_time": "2025-02-11T17:29:53.000Z"
+      },
+      {
+        "revenue_id": 4,
+        "vehicle_id": 2,
+        "amount": "100000",
+        "remark": "卖车款",
+        "revenue_phase": 1,
+        "payment_date": "2025-02-11T00:00:00.000Z",
+        "create_time": "2025-02-11T18:14:38.000Z",
+        "update_time": "2025-02-11T18:14:38.000Z"
+      }
+    ],
+    "sale_info": [],
+    "operation_log": [],
+    "error_logs": [],
+    "users": [
+      {
+        "user_id": 4,
+        "username": "admin",
+        "password": "$2a$10$hZlWKwiPlhs0yAMLBWsWjuVxSbJ2hdvwFJ/Bru/8aca.TE9Y8j3vy",
+        "role_id": 4,
+        "create_time": "2025-02-11T11:20:31.000Z"
+      }
+    ],
+    "roles": [
+      {
+        "role_id": 4,
+        "role_name": "超级管理员",
+        "role_key": "super_admin",
+        "description": "系统超级管理员",
+        "status": 1,
+        "create_time": "2025-02-11T11:20:16.000Z",
+        "update_time": "2025-02-11T11:20:16.000Z"
+      }
+    ],
+    "permissions": [
+      {
+        "permission_id": 49,
+        "parent_id": null,
+        "permission_name": "仪表盘",
+        "permission_key": "dashboard",
+        "permission_type": "menu",
+        "path": "/dashboard",
+        "component": null,
+        "icon": "HomeIcon",
+        "sort_order": 100,
+        "status": 1,
+        "create_time": "2025-02-11T23:12:20.000Z",
+        "update_time": null
+      },
+      {
+        "permission_id": 50,
+        "parent_id": null,
+        "permission_name": "用户管理",
+        "permission_key": "user_manage",
+        "permission_type": "menu",
+        "path": "/dashboard/users",
+        "component": null,
+        "icon": "UsersIcon",
+        "sort_order": 2,
+        "status": 1,
+        "create_time": "2025-02-11T23:12:20.000Z",
+        "update_time": null
+      },
+      {
+        "permission_id": 51,
+        "parent_id": null,
+        "permission_name": "角色管理",
+        "permission_key": "role_manage",
+        "permission_type": "menu",
+        "path": "/dashboard/roles",
+        "component": null,
+        "icon": "KeyIcon",
+        "sort_order": 3,
+        "status": 1,
+        "create_time": "2025-02-11T23:12:20.000Z",
+        "update_time": null
+      },
+      {
+        "permission_id": 52,
+        "parent_id": null,
+        "permission_name": "权限管理",
+        "permission_key": "permission_manage",
+        "permission_type": "menu",
+        "path": "/dashboard/permissions",
+        "component": null,
+        "icon": "ShieldCheckIcon",
+        "sort_order": 4,
+        "status": 1,
+        "create_time": "2025-02-11T23:12:20.000Z",
+        "update_time": null
+      },
+      {
+        "permission_id": 53,
+        "parent_id": null,
+        "permission_name": "车辆管理",
+        "permission_key": "car_manage",
+        "permission_type": "menu",
+        "path": "/dashboard/cars",
+        "component": null,
+        "icon": "TruckIcon",
+        "sort_order": 47,
+        "status": 1,
+        "create_time": "2025-02-11T23:12:20.000Z",
+        "update_time": null
+      },
+      {
+        "permission_id": 54,
+        "parent_id": null,
+        "permission_name": "费用管理",
+        "permission_key": "cost_manage",
+        "permission_type": "menu",
+        "path": "/dashboard/costs",
+        "component": null,
+        "icon": "CurrencyYenIcon",
+        "sort_order": 6,
+        "status": 1,
+        "create_time": "2025-02-11T23:12:20.000Z",
+        "update_time": null
+      },
+      {
+        "permission_id": 55,
+        "parent_id": null,
+        "permission_name": "收入管理",
+        "permission_key": "revenue_management",
+        "permission_type": "menu",
+        "path": "/dashboard/revenues",
+        "component": null,
+        "icon": "CurrencyYenIcon",
+        "sort_order": 7,
+        "status": 1,
+        "create_time": "2025-02-11T23:12:20.000Z",
+        "update_time": null
+      }
+    ],
+    "role_permissions": [
+      {
+        "role_id": 4,
+        "permission_id": 49,
+        "create_time": "2025-02-11T23:12:20.000Z"
+      },
+      {
+        "role_id": 4,
+        "permission_id": 50,
+        "create_time": "2025-02-11T23:12:20.000Z"
+      },
+      {
+        "role_id": 4,
+        "permission_id": 51,
+        "create_time": "2025-02-11T23:12:20.000Z"
+      },
+      {
+        "role_id": 4,
+        "permission_id": 52,
+        "create_time": "2025-02-11T23:12:20.000Z"
+      },
+      {
+        "role_id": 4,
+        "permission_id": 53,
+        "create_time": "2025-02-11T23:12:20.000Z"
+      },
+      {
+        "role_id": 4,
+        "permission_id": 54,
+        "create_time": "2025-02-11T23:12:20.000Z"
+      },
+      {
+        "role_id": 4,
+        "permission_id": 55,
+        "create_time": "2025-02-11T23:12:20.000Z"
+      }
+    ]
+  }
+}

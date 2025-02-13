@@ -55,8 +55,11 @@ model operation_log {
   details     String?   @db.Text
   ip_address  String?   @db.VarChar(45)
   create_time DateTime? @default(now()) @db.DateTime(0)
+  user        user      @relation(fields: [user_id], references: [user_id])
 
-  @@index([user_id], map: "user_id")
+  @@index([user_id])
+  @@index([action_type])
+  @@index([create_time])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -99,6 +102,8 @@ model user {
   role_id     Int       @db.UnsignedInt
   create_time DateTime? @default(now()) @db.DateTime(0)
   role        role      @relation("UserRole", fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+  errorLogs   ErrorLog[]
+  operationLogs operation_log[]
 
   @@index([role_id])
 }
@@ -144,4 +149,24 @@ model role_permission {
 
   @@id([role_id, permission_id])
   @@index([permission_id])
+}
+
+model ErrorLog {
+  id              Int       @id @default(autoincrement()) @db.UnsignedInt
+  errorName       String    @db.VarChar(255)
+  errorMessage    String    @db.Text
+  errorStack      String?   @db.Text
+  componentStack  String?   @db.Text
+  timestamp       DateTime  @db.DateTime(0)
+  userAgent       String    @db.VarChar(255)
+  url             String    @db.VarChar(255)
+  userId          Int?      @db.UnsignedInt
+  additionalData  String?   @db.Text
+  createdAt       DateTime  @default(now()) @db.DateTime(0)
+
+  user            user?     @relation(fields: [userId], references: [user_id], onDelete: SetNull)
+
+  @@index([timestamp])
+  @@index([userId])
+  @@map("error_logs")
 }

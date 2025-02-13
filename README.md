@@ -46,11 +46,9 @@
 | TypeScript | 5.x | 类型系统 |
 | Tailwind CSS | 3.x | 样式解决方案 |
 | Radix UI | 1.x | 无障碍组件库 |
-| Zustand | 4.x | 状态管理 |
+| SWR | 2.x | 数据请求 |
 | React Hook Form | 7.x | 表单处理 |
-| Zod | 3.x | 数据验证 |
-| Axios | 1.x | HTTP 客户端 |
-| Chart.js/D3.js | 4.x | 数据可视化 |
+| React Hot Toast | 2.x | 提示消息 |
 
 ### 后端技术栈
 | 技术 | 版本 | 说明 |
@@ -58,27 +56,24 @@
 | Next.js API Routes | 14.x | API 路由 |
 | Prisma | 6.x | ORM 框架 |
 | PostgreSQL | 14.x | 数据库 |
-| NextAuth.js | 4.x | 认证框架 |
-| Redis | 7.x | 缓存服务 |
-| AWS S3 | - | 文件存储 |
+| JWT | 9.x | 认证框架 |
+| bcryptjs | 2.x | 密码加密 |
 
 ### 开发工具
 | 工具 | 版本 | 说明 |
 |------|------|------|
-| pnpm | 8.x | 包管理器 |
+| pnpm | 10.x | 包管理器 |
 | ESLint | 8.x | 代码检查 |
 | Prettier | 3.x | 代码格式化 |
-| Jest | 29.x | 单元测试 |
-| React Testing Library | 14.x | 组件测试 |
-| TypeDoc | 0.24.x | 文档生成 |
-| GitHub Actions | - | CI/CD |
+| Husky | 9.x | Git Hooks |
+| lint-staged | 15.x | 提交前检查 |
 
 ## 📦 系统要求
 
 - Node.js 18.0 或更高版本
 - PostgreSQL 14.0 或更高版本
-- pnpm 8.0 或更高版本
-- Redis 7.0 或更高版本 (可选，用于缓存)
+- pnpm 10.0 或更高版本
+- Git 2.0 或更高版本
 
 ## 🚀 快速开始
 
@@ -106,15 +101,6 @@ DATABASE_URL="postgresql://username:password@localhost:5432/used_car"
 
 # JWT 配置
 JWT_SECRET="your-jwt-secret"
-
-# Redis 配置（可选）
-REDIS_URL="redis://localhost:6379"
-
-# AWS S3 配置（可选）
-AWS_ACCESS_KEY_ID="your-access-key"
-AWS_SECRET_ACCESS_KEY="your-secret-key"
-AWS_REGION="your-region"
-AWS_BUCKET_NAME="your-bucket-name"
 \`\`\`
 
 ### 4. 数据库迁移
@@ -123,7 +109,10 @@ AWS_BUCKET_NAME="your-bucket-name"
 pnpm prisma generate
 
 # 运行数据库迁移
-pnpm prisma migrate dev
+pnpm prisma db push
+
+# 运行数据填充（可选）
+pnpm seed
 \`\`\`
 
 ### 5. 启动开发服务器
@@ -153,29 +142,25 @@ used-car/
 │   ├── utils/         # 通用工具函数
 │   ├── hooks/         # 自定义 Hooks
 │   └── config/        # 配置文件
-├── types/             # 类型定义
-├── prisma/            # 数据库模型
+├── prisma/            # 数据库模型和迁移
 ├── public/            # 静态资源
-└── tests/             # 测试文件
+└── types/             # TypeScript 类型定义
 \`\`\`
 
-## 📚 API 文档
-
-### RESTful API
-- 基础路径：`/api`
-- 认证：使用 JWT Token
-- 详细文档：访问 `/api-docs` (开发环境)
-
-### WebSocket API
-- 基础路径：`/ws`
-- 用于实时通知和数据更新
-
-## 🔧 开发指南
+## 💻 开发指南
 
 ### 代码规范
+
+本项目使用 ESLint 和 Prettier 进行代码规范和格式化。
+
+#### 可用的命令：
+
 \`\`\`bash
-# 检查代码
+# 代码检查
 pnpm lint
+
+# 自动修复 ESLint 问题
+pnpm lint:fix
 
 # 格式化代码
 pnpm format
@@ -184,133 +169,173 @@ pnpm format
 pnpm type-check
 \`\`\`
 
-### 测试
-\`\`\`bash
-# 运行单元测试
-pnpm test
+### Git 提交规范
 
-# 运行 E2E 测试
-pnpm test:e2e
+本项目使用 Husky 和 lint-staged 来确保代码质量。每次提交前会自动运行以下检查：
 
-# 查看测试覆盖率
-pnpm test:coverage
+- ESLint 检查
+- Prettier 格式化
+- TypeScript 类型检查
+
+提交信息格式：
+\`\`\`
+<type>(<scope>): <subject>
+
+<body>
 \`\`\`
 
-### Git 提交规范
+类型（type）：
 - feat: 新功能
 - fix: 修复问题
 - docs: 文档变更
-- style: 代码格式
-- refactor: 代码重构
-- test: 测试相关
+- style: 代码格式（不影响代码运行的变动）
+- refactor: 重构（既不是新增功能，也不是修改 bug 的代码变动）
+- test: 增加测试
 - chore: 构建过程或辅助工具的变动
 
-## 🚢 部署指南
+### VSCode 配置
+
+本项目包含推荐的 VSCode 配置和扩展。
+
+#### 推荐的扩展：
+
+- ESLint
+- Prettier
+- Tailwind CSS IntelliSense
+- Prisma
+- TypeScript and JavaScript Language Features
+- Auto Rename Tag
+- Code Spell Checker
+- Color Highlight
+- DotENV
+- ES7+ React/Redux/React-Native snippets
+- Import Cost
+- Path Intellisense
+- Pretty TypeScript Errors
+
+#### 工作区设置：
+
+项目已包含 VSCode 工作区设置，主要配置：
+
+- 保存时自动格式化
+- ESLint 自动修复
+- Prettier 作为默认格式化工具
+- TypeScript 路径提示
+- Tailwind CSS 智能提示
+
+### 数据库维护与优化
+
+本项目提供了一系列数据库维护和优化工具，位于 `scripts` 目录下：
+
+#### 1. 数据库优化
+执行以下命令来优化数据库性能：
+```bash
+# 运行数据库优化
+pnpm db:optimize
+```
+优化内容包括：
+- 添加必要的索引
+- 更新表统计信息
+- 优化表结构
+- 配置查询缓存
+- 设置 InnoDB 缓冲池
+
+#### 2. 数据库监控
+监控数据库性能和健康状况：
+```bash
+# 运行数据库监控
+pnpm db:monitor
+
+# 仅分析不保存监控数据
+pnpm db:analyze
+```
+监控指标包括：
+- 表大小和行数统计
+- 查询缓存命中率
+- 缓冲池使用情况
+- 性能警告阈值检查
+
+监控数据将保存在 `metrics` 目录下，格式为 JSON。
+
+#### 3. 数据库维护
+定期维护任务：
+```bash
+# 运行维护任务
+pnpm db:maintenance
+
+# 清理过期数据和日志
+pnpm db:cleanup
+```
+
+#### 4. 数据库备份
+```bash
+# 创建数据库备份
+pnpm db:backup
+```
+
+### 性能优化建议
+
+1. 定期运行 `pnpm db:optimize` 以保持数据库性能
+2. 监控 `metrics` 目录下的性能报告
+3. 当查询缓存命中率低于 80% 时，考虑：
+   - 检查是否有频繁的数据更新操作
+   - 优化查询语句
+   - 调整缓存配置参数
+4. 当表大小超过 1GB 时，考虑：
+   - 实施数据归档策略
+   - 优化索引结构
+   - 进行表分区
+
+## 🚢 部署
 
 ### Vercel 部署（推荐）
 
-#### 前期准备
-1. 注册 [Vercel](https://vercel.com) 账号并关联 GitHub
-2. 准备好 PostgreSQL 数据库（推荐使用 [Supabase](https://supabase.com/)）
-3. 准备好必要的环境变量
+1. Fork 本项目到你的 GitHub 账号
 
-#### 部署步骤
-
-1. **导入项目到 Vercel**
-   - 登录 [Vercel 控制台](https://vercel.com)
+2. 在 Vercel 中导入项目：
+   - 访问 [Vercel](https://vercel.com)
    - 点击 "New Project"
-   - 选择你的 GitHub 仓库
+   - 选择你 fork 的仓库
    - 点击 "Import"
 
-2. **配置构建设置**
-   
-   在项目配置页面中：
-   - Framework Preset: 选择 "Next.js"
-   - Build Command: 修改为 `pnpm install --no-frozen-lockfile && prisma generate && next build`
-   - Output Directory: `.next`
-   - Install Command: `pnpm install`
+3. 配置环境变量：
+   - DATABASE_URL
+   - JWT_SECRET
+   - NODE_ENV=production
 
-3. **配置环境变量**
-   
-   在 "Environment Variables" 部分添加：
-   ```
-   # 数据库配置（必需）
-   DATABASE_URL=postgresql://username:password@host:5432/database
+4. 部署项目：
+   - 点击 "Deploy"
+   - 等待部署完成
 
-   # JWT 配置（必需）
-   JWT_SECRET=your-secure-jwt-secret
+### 手动部署
 
-   # Next.js 配置（必需）
-   NEXTAUTH_URL=https://your-domain.vercel.app
-   NEXTAUTH_SECRET=your-nextauth-secret
-   NODE_ENV=production
-   ```
+1. 构建项目：
+\`\`\`bash
+pnpm build
+\`\`\`
 
-4. **数据库迁移**
-   
-   首次部署前需要执行数据库迁移：
-   ```bash
-   # 本地执行
-   pnpm prisma migrate deploy
-   ```
+2. 启动生产服务器：
+\`\`\`bash
+pnpm start
+\`\`\`
 
-5. **检查部署**
-   - 确保所有环境变量已正确配置
-   - 点击 "Deploy" 开始部署
-   - 等待部署完成并检查构建日志
+## 📝 许可证
 
-#### 常见部署问题
-
-1. **依赖安装失败**
-   - 问题：pnpm install 报错
-   - 解决：在构建命令中添加 `--no-frozen-lockfile` 选项
-
-2. **数据库连接失败**
-   - 问题：无法连接数据库
-   - 解决：
-     - 检查 DATABASE_URL 格式
-     - 确保数据库允许 Vercel IP 访问
-     - 验证数据库凭据
-
-3. **Prisma 生成失败**
-   - 问题：prisma generate 报错
-   - 解决：确保构建命令中包含 `prisma generate`
-
-4. **构建超时**
-   - 问题：部署时间过长导致超时
-   - 解决：
-     - 优化依赖安装
-     - 检查构建缓存配置
-     - 考虑使用 Turborepo
+本项目采用 [ISC 许可证](LICENSE)。
 
 ## 🤝 贡献指南
 
-1. Fork 本仓库
-2. 创建特性分支：`git checkout -b feature/amazing-feature`
-3. 提交更改：`git commit -m 'feat: add amazing feature'`
-4. 推送分支：`git push origin feature/amazing-feature`
-5. 提交 Pull Request
+1. Fork 本项目
+2. 创建你的特性分支 (\`git checkout -b feature/AmazingFeature\`)
+3. 提交你的更改 (\`git commit -m 'Add some AmazingFeature'\`)
+4. 推送到分支 (\`git push origin feature/AmazingFeature\`)
+5. 打开一个 Pull Request
 
-## 📄 许可证
+## 📮 联系方式
 
-MIT License - 详见 [LICENSE](LICENSE) 文件
+如有任何问题或建议，欢迎提出 Issue 或 Pull Request。
 
-## 👥 团队
-
-- 产品负责人：[Name] - [email]
-- 技术负责人：[Name] - [email]
-- 前端开发：[Name] - [email]
-- 后端开发：[Name] - [email]
-- UI 设计：[Name] - [email]
-
-## 📞 联系方式
-
-- 官方网站：[website]
-- 技术支持：[email]
-- 商务合作：[email]
-- 微信：[WeChat ID]
-
-## 📝 更新日志
+## 📄 更新日志
 
 详见 [CHANGELOG.md](CHANGELOG.md)
 

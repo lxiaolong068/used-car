@@ -5,32 +5,27 @@ import { Menu, Transition } from '@headlessui/react'
 import { UserCircleIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
+interface UserMenuProps {
+  username: string;
+  role: string;
 }
 
-export default function UserMenu({ username }: { username: string }) {
-  const router = useRouter()
+export default function UserMenu({ username, role }: UserMenuProps) {
+  const router = useRouter();
 
   const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-      })
-
-      if (response.ok) {
-        router.push('/')
-      }
-    } catch (error) {
-      console.error('退出登录失败:', error)
-    }
-  }
+    // 清除 cookie
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    // 跳转到登录页
+    router.push('/login');
+  };
 
   return (
     <Menu as="div" className="relative">
-      <Menu.Button className="flex items-center text-sm rounded-full hover:opacity-80 focus:outline-none">
-        <UserCircleIcon className="h-8 w-8 text-gray-600" />
+      <Menu.Button className="flex items-center max-w-xs rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        <UserCircleIcon className="h-8 w-8 text-gray-400" />
         <span className="ml-2 text-gray-700">{username}</span>
+        <span className="ml-1 text-sm text-gray-500">({role})</span>
       </Menu.Button>
 
       <Transition
@@ -47,10 +42,9 @@ export default function UserMenu({ username }: { username: string }) {
             {({ active }) => (
               <button
                 onClick={handleLogout}
-                className={classNames(
-                  active ? 'bg-gray-100' : '',
-                  'flex w-full px-4 py-2 text-sm text-gray-700'
-                )}
+                className={`${
+                  active ? 'bg-gray-100' : ''
+                } block w-full px-4 py-2 text-left text-sm text-gray-700`}
               >
                 退出登录
               </button>
@@ -59,5 +53,5 @@ export default function UserMenu({ username }: { username: string }) {
         </Menu.Items>
       </Transition>
     </Menu>
-  )
+  );
 }

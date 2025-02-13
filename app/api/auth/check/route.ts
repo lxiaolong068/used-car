@@ -1,27 +1,24 @@
 import { NextResponse } from 'next/server'
-import jwt from 'jsonwebtoken'
-import { cookies } from 'next/headers'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const cookieStore = cookies()
-    const token = cookieStore.get('token')
+    const session = await getServerSession(authOptions)
 
-    if (!token) {
+    if (!session) {
       return NextResponse.json(
         { error: '未登录' },
         { status: 401 }
       )
     }
 
-    // 验证 token
-    const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'your-secret-key')
-    
     return NextResponse.json(
-      { authenticated: true, user: decoded },
+      { authenticated: true, user: session.user },
       { status: 200 }
     )
   } catch (error) {
+    console.error('Auth check error:', error)
     return NextResponse.json(
       { error: '未登录或会话已过期' },
       { status: 401 }

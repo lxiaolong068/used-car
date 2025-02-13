@@ -4,5 +4,136 @@ globs:
 ---
 
 # Your rule content
-- **"During development, unless explicitly requested by the user, avoid making changes to the existing interface, styles, and layout as much as possible."**
-- **"Place all script files in the `/scripts` directory and all SQL files in the `/data` directory."**
+
+## 开发环境
+
+### 必需的开发工具
+- Node.js 18.0+
+- Next.js 14
+- pnpm 10.0+
+- Git 2.0+
+- Visual Studio Code
+- MySQL
+
+## 项目结构规范
+
+### 目录结构
+\`\`\`
+used-car/
+├── app/                # Next.js 应用目录
+│   ├── api/           # API 路由
+│   ├── (auth)/        # 认证相关页面
+│   ├── (dashboard)/   # 主面板页面
+│   └── (public)/      # 公开页面
+├── components/        # React 组件
+├── lib/              # 工具函数和配置
+├── scripts/          # 脚本文件
+├── data/             # SQL 文件
+└── docs/             # 项目文档
+\`\`\`
+
+### 文件位置规范
+1. **脚本文件规范**
+   - 所有脚本文件必须放在 `/scripts` 目录下
+   - 脚本文件应当按功能分类存放
+   - 每个脚本文件都应该有相应的说明注释
+
+2. **SQL 文件规范**
+   - 所有 SQL 文件必须放在 `/data` 目录下
+   - SQL 文件命名应该清晰表明其用途
+   - 每个 SQL 文件都应该有相应的说明注释
+
+3. **组件规范**
+   - 基础 UI 组件放在 `components/ui` 目录
+   - 业务组件放在 `components/features` 目录
+   - 通用组件放在 `components/common` 目录
+
+## 代码风格指南
+
+### 通用规范
+
+1. **接口设计规范**
+   - 在开发过程中，除非用户明确要求，否则应保持现有的界面、样式和布局
+   - 所有的UI变更都需要经过确认
+   - 保持界面的一致性和可预测性
+
+2. **代码格式化**
+   - 使用项目配置的 ESLint 和 Prettier 规则
+   - 保存时自动格式化
+   - 提交前强制代码检查
+
+3. **命名规范**
+   - 组件使用 PascalCase
+   - 函数和变量使用 camelCase
+   - 常量使用 UPPER_SNAKE_CASE
+   - 类型和接口使用 PascalCase
+
+
+### 代码审查清单
+- [ ] 代码是否遵循项目规范
+- [ ] 是否有适当的错误处理
+- [ ] 是否有必要的注释
+- [ ] 是否有适当的测试覆盖
+- [ ] 是否有性能问题
+- [ ] 是否有安全隐患
+
+## 认证和路由处理规范
+
+### 1. 表单处理规范
+- **表单默认行为**
+  - 必须使用 `e.preventDefault()` 阻止表单默认提交行为
+  - 不要在表单上设置 `action` 和 `method` 属性
+  - 使用 `onSubmit` 处理表单提交
+  - 使用受控组件管理表单状态
+
+- **错误处理**
+  - 在提交前进行客户端表单验证
+  - 显示清晰的错误信息
+  - 禁用提交按钮直到验证通过
+
+### 2. NextAuth 配置规范
+- **认证选项**
+  - 保持 `authOptions` 配置的一致性
+  - 使用 `redirect: false` 控制重定向行为
+  - 在登录成功后手动处理重定向
+  - 不要在 URL 中暴露敏感信息
+
+- **会话处理**
+  - 使用 JWT 策略管理会话
+  - 设置合适的会话过期时间
+  - 正确处理会话刷新
+
+### 3. 路由保护规范
+- **中间件配置**
+  - 使用中间件统一处理路由保护
+  - 明确定义公共路径和受保护路径
+  - 避免循环重定向
+  - 正确处理 API 路由的认证
+
+- **重定向处理**
+  - 使用 `router.replace` 而不是 `router.push`
+  - 检查回调 URL 的合法性
+  - 避免重定向到登录页面时携带敏感信息
+  
+### 1. 开发环境相关
+- 本项目开发环境为 Windows
+- 部署平台为 Vercel
+- 所有开发和部署流程都应该与此环境兼容
+
+### 2. 性能优化
+- 使用适当的代码分割
+- 优化图片和资源加载
+- 实现适当的缓存策略
+- 注意代码包大小
+
+### 3. 安全性
+- 所有的用户输入都必须验证
+- 使用适当的权限控制
+- 保护敏感信息
+- 使用 HTTPS
+
+### 7. 文档
+- 及时更新文档
+- 添加适当的代码注释
+- 记录 API 变更
+- 维护更新日志 

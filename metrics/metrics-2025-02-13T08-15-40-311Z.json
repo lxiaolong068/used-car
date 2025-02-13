@@ -1,0 +1,81 @@
+{
+  "tableStats": [
+    {
+      "tableName": "_prisma_migrations",
+      "rowCount": 1,
+      "dataSize": 16384,
+      "indexSize": 0
+    },
+    {
+      "tableName": "car_info",
+      "rowCount": 2,
+      "dataSize": 16384,
+      "indexSize": 98304
+    },
+    {
+      "tableName": "cost_management",
+      "rowCount": 3,
+      "dataSize": 16384,
+      "indexSize": 81920
+    },
+    {
+      "tableName": "error_logs",
+      "rowCount": 0,
+      "dataSize": 16384,
+      "indexSize": 65536
+    },
+    {
+      "tableName": "operation_log",
+      "rowCount": 0,
+      "dataSize": 16384,
+      "indexSize": 49152
+    },
+    {
+      "tableName": "permission",
+      "rowCount": 7,
+      "dataSize": 16384,
+      "indexSize": 32768
+    },
+    {
+      "tableName": "revenue_management",
+      "rowCount": 4,
+      "dataSize": 16384,
+      "indexSize": 81920
+    },
+    {
+      "tableName": "role",
+      "rowCount": 1,
+      "dataSize": 16384,
+      "indexSize": 16384
+    },
+    {
+      "tableName": "role_permission",
+      "rowCount": 7,
+      "dataSize": 16384,
+      "indexSize": 16384
+    },
+    {
+      "tableName": "sale_info",
+      "rowCount": 0,
+      "dataSize": 16384,
+      "indexSize": 65536
+    },
+    {
+      "tableName": "user",
+      "rowCount": 1,
+      "dataSize": 16384,
+      "indexSize": 32768
+    }
+  ],
+  "cacheMetrics": {
+    "queryCache": {
+      "size": 0,
+      "hitRate": 0
+    },
+    "bufferPool": {
+      "size": 96875,
+      "hitRate": 99.75492467537816
+    }
+  },
+  "timestamp": "2025-02-13T08:15:40.309Z"
+}

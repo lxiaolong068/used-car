@@ -1,64 +1,58 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { verify } from 'jsonwebtoken'
-import { prisma } from '@/lib/prisma'
+import { jwtVerify } from 'jose'
+import prisma from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const cookieStore = cookies()
-    const token = cookieStore.get('token')
+    const token = request.headers.get('cookie')?.split(';')
+      .find(c => c.trim().startsWith('token='))
+      ?.split('=')[1]
+
+    console.log('GET /api/auth/me - Token:', token)
 
     if (!token) {
+      console.log('GET /api/auth/me - No token found')
       return NextResponse.json(
-        { error: '未登录' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    // 验证 token
-    const decoded = verify(token.value, process.env.JWT_SECRET || 'your-secret-key') as { user_id: number }
-    
-    if (!decoded || !decoded.user_id) {
-      return NextResponse.json(
-        { error: 'Token无效' },
-        { status: 401 }
-      )
-    }
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(process.env.JWT_SECRET)
+    )
+    console.log('GET /api/auth/me - Decoded token:', payload)
 
-    // 获取用户信息
     const user = await prisma.user.findUnique({
-      where: { user_id: decoded.user_id },
-      select: {
-        user_id: true,
-        username: true,
-        role: {
-          select: {
-            role_id: true,
-            role_name: true
-          }
-        }
+      where: { id: payload.userId as number },
+      include: {
+        role: true
       }
     })
 
-    if (!user || !user.role) {
+    console.log('GET /api/auth/me - User found:', user)
+
+    if (!user) {
+      console.log('GET /api/auth/me - User not found')
       return NextResponse.json(
-        { error: '用户不存在或角色无效' },
+        { error: 'User not found' },
         { status: 404 }
       )
     }
 
     return NextResponse.json({
-      user_id: user.user_id,
+      id: user.id,
       username: user.username,
-      role: {
-        role_id: user.role.role_id,
-        role_name: user.role.role_name
-      }
+      role: user.role,
+      email: user.email,
+      created_at: user.created_at,
+      updated_at: user.updated_at
     })
   } catch (error) {
-    console.error('Get user info error:', error)
+    console.error('GET /api/auth/me - Error:', error)
     return NextResponse.json(
-      { error: '获取用户信息失败' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

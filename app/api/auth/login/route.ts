@@ -1,16 +1,13 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import { prisma } from '@/lib/prisma'
+import { compare } from 'bcryptjs'
+import { sign } from 'jsonwebtoken'
 import { cookies } from 'next/headers'
-
-const prisma = new PrismaClient()
 
 export async function POST(request: Request) {
   try {
-    const { username, password } = await request.json()
+    const { username, password, remember } = await request.json()
 
-    // 验证必填字段
     if (!username || !password) {
       return NextResponse.json(
         { error: '用户名和密码不能为空' },
@@ -18,75 +15,70 @@ export async function POST(request: Request) {
       )
     }
 
-    // 查找用户，同时获取角色信息
+    // 查找用户
     const user = await prisma.user.findUnique({
       where: { username },
-      include: {
-        role: true
-      }
+      include: { role: true }
     })
 
     if (!user) {
-      console.log('用户不存在:', username);
       return NextResponse.json(
-        { error: '用户名或密码错误' },
+        { error: '用户不存在' },
         { status: 401 }
       )
     }
-
-    console.log('数据库中的密码:', user.password);
-    console.log('用户输入的密码:', password);
 
     // 验证密码
-    const validPassword = await bcrypt.compare(password, user.password)
-    console.log('密码验证结果:', validPassword);
-    
-    if (!validPassword) {
+    const isValid = await compare(password, user.password)
+    if (!isValid) {
       return NextResponse.json(
-        { error: '用户名或密码错误' },
+        { error: '密码错误' },
         { status: 401 }
       )
     }
 
-    if (!user.role) {
-      console.log('用户没有关联的角色');
-      return NextResponse.json(
-        { error: '用户角色无效' },
-        { status: 401 }
-      )
-    }
-
-    // 生成 JWT token
-    const token = jwt.sign(
+    // 生成 JWT
+    const token = sign(
       {
-        user_id: user.user_id,
+        id: user.user_id,
         username: user.username,
         role: user.role.role_key,
       },
       process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '24h' }
+      {
+        expiresIn: remember ? '7d' : '1d',
+      }
     )
 
-    // 设置 cookie
-    cookies().set('token', token, {
+    // 将 JWT 存储在 Cookie 中
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60, // 24 hours
+      sameSite: 'strict' as const,
+      maxAge: remember ? 7 * 24 * 60 * 60 : 24 * 60 * 60,
+      path: '/',
+    }
+
+    // 在返回响应之前，先打印一些调试信息
+    console.log('Setting cookie with token:', {
+      token: token.substring(0, 20) + '...', // 只打印token的前20个字符
+      options: cookieOptions
     })
 
+    cookies().set('token', token, cookieOptions)
+
     return NextResponse.json({
-      id: user.user_id,
-      username: user.username,
-      role: user.role.role_key,
+      user: {
+        id: user.user_id,
+        username: user.username,
+        role: user.role.role_key
+      }
     })
   } catch (error) {
     console.error('登录失败:', error)
     return NextResponse.json(
-      { error: '登录失败' },
+      { error: '登录失败，请重试' },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }

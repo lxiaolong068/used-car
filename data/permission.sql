@@ -23,3 +23,17 @@ INSERT INTO `permission` (`parent_id`, `permission_name`, `permission_key`, `per
 (NULL, '车辆管理', 'car_manage', 'menu', '/dashboard/cars', 'dashboard/cars/index'),
 (NULL, '销售管理', 'sale_manage', 'menu', '/dashboard/sales', 'dashboard/sales/index'),
 (NULL, '成本管理', 'cost_manage', 'menu', '/dashboard/costs', 'dashboard/costs/index');
+
+-- 系统管理
+INSERT INTO permission (permission_name, permission_key, permission_type, path, component, icon, sort_order, parent_id)
+VALUES ('系统管理', 'system', 'menu', '/dashboard/system', null, 'Settings', 900, null);
+
+-- 操作日志
+INSERT INTO permission (permission_name, permission_key, permission_type, path, component, icon, sort_order, parent_id)
+VALUES ('操作日志', 'operation_logs', 'menu', '/dashboard/logs', null, 'FileText', 920, 
+  (SELECT permission_id FROM (SELECT * FROM permission) AS p WHERE permission_key = 'system'));
+
+-- 查看操作日志权限
+INSERT INTO permission (permission_name, permission_key, permission_type, path, component, icon, sort_order, parent_id)
+VALUES ('查看操作日志', 'view_operation_logs', 'action', null, null, null, 921, 
+  (SELECT permission_id FROM (SELECT * FROM permission) AS p WHERE permission_key = 'operation_logs'));

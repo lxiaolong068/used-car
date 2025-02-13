@@ -1,8 +1,50 @@
 {
-  "extends": "next/core-web-vitals",
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": [
+    "@typescript-eslint",
+    "react",
+    "prettier"
+  ],
   "rules": {
-    // 关闭一些可能导致构建失败的规则
+    // React 相关规则
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "react/display-name": "off",
+    
+    // TypeScript 相关规则
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    
+    // 代码风格规则
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "prettier/prettier": ["error", {
+      "printWidth": 100,
+      "tabWidth": 2,
+      "useTabs": false,
+      "semi": true,
+      "singleQuote": true,
+      "trailingComma": "es5",
+      "bracketSpacing": true,
+      "jsxBracketSameLine": false,
+      "arrowParens": "avoid"
+    }],
+    
+    // Next.js 规则
     "@next/next/no-img-element": "off",
     "@next/next/no-html-link-for-pages": "off"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   }
 }
