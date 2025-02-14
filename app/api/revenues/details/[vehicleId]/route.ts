@@ -12,18 +12,17 @@ export async function GET(
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json(
-      { error: '未登录' },
-      { status: 401 }
-    )
-    }, { status: 401 })
+        { error: '未登录' },
+        { status: 401 }
+      );
     }
 
     const vehicleId = parseInt(params.vehicleId)
     if (isNaN(vehicleId)) {
       return NextResponse.json(
-      { error: '无效的车辆ID' },
-      { status: 400 }
-    )
+        { error: '无效的车辆ID' },
+        { status: 400 }
+      )
     }
 
     // 获取收入明细
