@@ -95,10 +95,9 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json(
-      { error: '未登录' },
-      { status: 401 }
-    )
-    }, { status: 401 })
+        { error: '未登录' },
+        { status: 401 }
+      );
     }
 
     // 获取请求数据
@@ -108,25 +107,25 @@ export async function POST(request: Request) {
     // 验证必填字段
     if (!vehicle_id || !amount || !payment_phase || !payment_date) {
       return NextResponse.json(
-      { error: '缺少必填字段' },
-      { status: 400 }
-    )
+        { error: '缺少必填字段' },
+        { status: 400 }
+      )
     }
 
     // 验证金额必须大于零
     if (parseFloat(amount) <= 0) {
       return NextResponse.json(
-      { error: '金额必须大于零' },
-      { status: 400 }
-    )
+        { error: '金额必须大于零' },
+        { status: 400 }
+      )
     }
 
     // 验证付款阶段必须大于等于1
     if (parseInt(payment_phase) < 1) {
       return NextResponse.json(
-      { error: '付款阶段必须大于等于1' },
-      { status: 400 }
-    )
+        { error: '付款阶段必须大于等于1' },
+        { status: 400 }
+      )
     }
 
     // 创建新费用记录

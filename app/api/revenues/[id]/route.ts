@@ -15,8 +15,7 @@ export async function GET(
       return NextResponse.json(
       { error: '未登录' },
       { status: 401 }
-    )
-    }, { status: 401 })
+    );
     }
 
     const revenueId = parseInt(params.id)
@@ -71,8 +70,8 @@ export async function PUT(
       return NextResponse.json(
       { error: '未登录' },
       { status: 401 }
-    )
-    }, { status: 401 })
+    );
+
     }
 
     const revenueId = parseInt(params.id)
@@ -155,8 +154,8 @@ export async function DELETE(
       return NextResponse.json(
       { error: '未登录' },
       { status: 401 }
-    )
-    }, { status: 401 })
+    );
+
     }
 
     const revenueId = parseInt(params.id)
