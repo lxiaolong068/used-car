@@ -16,9 +16,6 @@ const nextConfig = {
     // 暂时忽略 ESLint 错误，以便构建能够完成
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    serverActions: true,
-  },
   async headers() {
     const securityHeaders = [
       {
