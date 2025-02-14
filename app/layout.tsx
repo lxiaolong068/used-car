@@ -1,6 +1,8 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import { Metadata } from 'next'
+import Providers from './Providers'
+
 // import { getServerSession } from 'next-auth'
 // import { AuthProvider } from '@/providers/AuthProvider'
 // import { authOptions } from '@/lib/auth'
@@ -22,9 +24,9 @@ export default async function RootLayout({
   return (
     <html lang="zh">
       <body className={inter.className}>
-        {/* <AuthProvider session={session}> */}
-        {children}
-        {/* </AuthProvider> */}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )

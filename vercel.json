@@ -5,7 +5,38 @@
   "installCommand": "pnpm install",
   "outputDirectory": ".next",
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "NEXTAUTH_URL": "https://${VERCEL_URL}",
+    "VERCEL_ENV": "production"
   },
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-sessions",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }

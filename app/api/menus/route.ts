@@ -5,7 +5,8 @@ export async function GET() {
   try {
     const menus = await prisma.permission.findMany({
       where: { parent_id: null },
-      include: { children: true }
+      orderBy: { sort_order: 'desc' },
+      include: { children: { orderBy: { sort_order: 'desc' } } }
     })
     
     return NextResponse.json({

@@ -1,10 +1,11 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import UserMenu from '../components/UserMenu'
 import Link from 'next/link'
 import { useMenu } from '@/hooks/useMenu'
+import { useSession } from 'next-auth/react'
 import {
   HomeIcon,
   UsersIcon,
@@ -15,8 +16,7 @@ import {
   Cog6ToothIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline'
-import { MenuProvider, useMenu as useMenuContext } from '../contexts/MenuContext'
-import { jwtVerify } from 'jose'
+import { MenuProvider } from '../contexts/MenuContext'
 
 // 图标映射
 const iconMap: { [key: string]: any } = {
@@ -45,35 +45,18 @@ interface MenuItem {
   children?: MenuItem[]
 }
 
-interface UserInfo {
-  username: string;
-  role: string;
-}
-
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { menuItems, loading, error } = useMenu();
   const pathname = usePathname();
-  const [user, setUser] = useState<UserInfo | null>(null);
+  const router = useRouter();
+  const { data: session, status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      router.replace('/login');
+    },
+  });
 
-  useEffect(() => {
-    // 从 API 获取用户信息
-    const fetchUser = async () => {
-      try {
-        const response = await fetch('/api/auth/user');
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data);
-        } else {
-          console.error('获取用户信息失败');
-        }
-      } catch (error) {
-        console.error('获取用户信息出错:', error);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
+  // 如果正在加载 session，显示加载状态
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -101,71 +84,63 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       return null;
     }
 
+    const isActive = pathname === item.path;
+    const hasChildren = item.children && item.children.length > 0;
+
     return (
-      <div key={item.permission_id}>
+      <li key={item.permission_id}>
         <Link
           href={item.path}
-          className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-            pathname === item.path
-              ? 'bg-gray-900 text-white'
-              : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+          className={`flex items-center p-2 text-base font-normal rounded-lg ${
+            isActive
+              ? 'bg-gray-100 text-gray-900'
+              : 'text-gray-900 hover:bg-gray-100'
           }`}
         >
           {Icon && (
-            <Icon
-              className={`mr-3 h-6 w-6 flex-shrink-0 ${
-                pathname === item.path
-                  ? 'text-white'
-                  : 'text-gray-400 group-hover:text-white'
-              }`}
-              aria-hidden="true"
-            />
+            <Icon className="w-6 h-6 text-gray-500 transition duration-75" />
           )}
-          {item.permission_name}
+          <span className="ml-3">{item.permission_name}</span>
         </Link>
-        {item.children && item.children.length > 0 && (
-          <div className="ml-4 mt-1 space-y-1">
+        {hasChildren && (
+          <ul className="pl-4 mt-2 space-y-2">
             {item.children.map((child) => renderMenuItem(child))}
-          </div>
+          </ul>
         )}
-      </div>
+      </li>
     );
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-50">
       {/* 侧边栏 */}
-      <div className="fixed inset-y-0 left-0 flex w-64 flex-col">
-        {/* 侧边栏内容 */}
-        <div className="flex min-h-0 flex-1 flex-col bg-gray-800">
-          <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
-            <div className="flex flex-shrink-0 items-center px-4">
-              <span className="text-xl font-bold text-white">二手车管理系统</span>
-            </div>
-            <nav className="mt-5 flex-1 space-y-1 px-2">
-              {menuItems?.map((item: MenuItem) => renderMenuItem(item))}
-            </nav>
+      <aside className="w-64 h-screen" aria-label="Sidebar">
+        <div className="h-full px-3 py-4 overflow-y-auto bg-white border-r">
+          <div className="flex items-center justify-between mb-5">
+            <span className="text-xl font-semibold">二手车管理系统</span>
           </div>
+          <ul className="space-y-2">
+            {menuItems?.map((item: MenuItem) => renderMenuItem(item))}
+          </ul>
         </div>
-      </div>
+      </aside>
 
-      {/* 主要内容区域 */}
-      <div className="pl-64 flex flex-1 flex-col">
+      {/* 主内容区 */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* 顶部导航栏 */}
-        <div className="sticky top-0 z-10 bg-white pl-4 pr-4 py-2 flex items-center justify-between border-b border-gray-200">
-          <div className="flex-1"></div>
-          <div className="flex items-center">
-            {user && <UserMenu username={user.username} role={user.role} />}
+        <header className="bg-white shadow">
+          <div className="px-4 py-3 flex justify-between items-center">
+            <h1 className="text-xl font-semibold text-gray-900">
+              {menuItems?.find((item: MenuItem) => item.path === pathname)
+                ?.permission_name || '仪表盘'}
+            </h1>
+            <UserMenu user={session?.user} />
           </div>
-        </div>
+        </header>
 
-        {/* 主要内容 */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="py-6">
-            <div className="mx-auto px-4 sm:px-6 md:px-8">
-              {children}
-            </div>
-          </div>
+        {/* 页面内容 */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+          {children}
         </main>
       </div>
     </div>
@@ -181,5 +156,5 @@ export default function DashboardLayout({
     <MenuProvider>
       <DashboardContent>{children}</DashboardContent>
     </MenuProvider>
-  )
+  );
 }

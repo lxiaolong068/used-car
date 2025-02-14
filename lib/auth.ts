@@ -1,44 +1,105 @@
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
+import { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { PrismaClient } from '@prisma/client';
+import { compare } from 'bcryptjs';
 
-// 验证用户是否登录
-export async function verifyUser() {
-  try {
-    const cookieStore = cookies();
-    const token = cookieStore.get('token')?.value;
+const prisma = new PrismaClient();
 
-    if (!token) {
-      return null;
-    }
+export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      id: 'credentials',
+      name: 'Credentials',
+      credentials: {
+        username: { label: "用户名", type: "text" },
+        password: { label: "密码", type: "password" }
+      },
+      async authorize(credentials, req) {
+        console.log('Authorizing with credentials:', { username: credentials?.username });
 
-    const secret = new TextEncoder().encode(
-      process.env.JWT_SECRET || 'your-secret-key'
-    );
-    const { payload } = await jwtVerify(token, secret);
+        if (!credentials?.username || !credentials?.password) {
+          console.log('Missing credentials');
+          throw new Error('请输入用户名和密码');
+        }
 
-    return {
-      id: payload.id,
-      username: payload.username,
-      role: payload.role,
-    };
-  } catch (error) {
-    console.error('验证用户失败:', error);
-    return null;
-  }
-}
+        try {
+          // 从数据库中查找用户
+          const user = await prisma.user.findUnique({
+            where: {
+              username: credentials.username,
+            },
+            select: {
+              user_id: true,
+              username: true,
+              password: true,
+              role: {
+                select: {
+                  role_key: true,
+                  role_name: true
+                }
+              }
+            },
+          });
 
-// 获取当前会话信息
-export async function getServerSession() {
-  const user = await verifyUser();
-  if (!user) {
-    return null;
-  }
+          console.log('Found user:', user ? 'yes' : 'no');
 
-  return {
-    user: {
-      id: user.id as string,
-      name: user.username as string,
-      role: user.role as string,
+          if (!user) {
+            console.log('User not found');
+            throw new Error('用户名或密码错误');
+          }
+
+          // 验证密码
+          console.log('Comparing passwords...');
+          const isValid = await compare(credentials.password, user.password);
+          console.log('Password valid:', isValid);
+
+          if (!isValid) {
+            console.log('Invalid password');
+            throw new Error('用户名或密码错误');
+          }
+
+          console.log('Authentication successful');
+
+          // 返回用户信息（不包含密码）
+          return {
+            id: String(user.user_id),
+            name: user.username,
+            role: user.role.role_key,
+          };
+        } catch (error) {
+          console.error('Authorization error:', error);
+          throw error;
+        } finally {
+          await prisma.$disconnect();
+        }
+      },
+    }),
+  ],
+  pages: {
+    signIn: '/login',
+    error: '/login',
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      console.log('JWT callback:', { token, user });
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
     },
-  };
-} 
+    async session({ session, token }) {
+      console.log('Session callback:', { session, token });
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role as string;
+      }
+      return session;
+    },
+  },
+  debug: true,
+};

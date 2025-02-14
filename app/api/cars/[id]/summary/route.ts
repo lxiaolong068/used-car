@@ -1,20 +1,28 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyUser } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = await verifyUser()
-    if (!user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json(
+      { error: '未登录' },
+      { status: 401 }
+    )
+    }, { status: 401 })
     }
 
     const vehicleId = parseInt(params.id)
     if (isNaN(vehicleId)) {
-      return NextResponse.json({ error: '无效的车辆ID' }, { status: 400 })
+      return NextResponse.json(
+      { error: '无效的车辆ID' },
+      { status: 400 }
+    )
     }
 
     // 获取车辆基本信息和相关的收入支出数据
@@ -39,7 +47,10 @@ export async function GET(
     })
 
     if (!carInfo) {
-      return NextResponse.json({ error: '车辆不存在' }, { status: 404 })
+      return NextResponse.json(
+      { error: '车辆不存在' },
+      { status: 404 }
+    )
     }
 
     // 计算总收入
@@ -85,6 +96,9 @@ export async function GET(
     })
   } catch (error) {
     console.error('获取车辆财务汇总失败:', error)
-    return NextResponse.json({ error: '获取车辆财务汇总失败' }, { status: 500 })
+    return NextResponse.json(
+      { error: '获取车辆财务汇总失败' },
+      { status: 500 }
+    )
   }
 } 

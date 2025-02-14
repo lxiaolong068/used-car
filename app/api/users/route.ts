@@ -55,8 +55,8 @@ export async function GET() {
     // 转换响应格式以保持与前端兼容
     const formattedUsers = users.map(user => ({
       user_id: user.user_id,
-      username: user.username,
-      role: user.role?.role_key || 'user',
+      username: session.user.name,
+      role: session.session.user.role?.role_key || 'user',
       create_time: user.create_time
     }))
 
@@ -165,8 +165,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       user_id: user.user_id,
-      username: user.username,
-      role: user.role?.role_key || 'user',
+      username: session.user.name,
+      role: session.session.user.role?.role_key || 'user',
       create_time: user.create_time
     })
   } catch (error) {

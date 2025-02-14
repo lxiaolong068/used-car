@@ -1,14 +1,19 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyUser } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // 获取收入列表
 export async function GET(request: Request) {
   try {
     // 验证用户是否登录
-    const user = await verifyUser()
-    if (!user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json(
+      { error: '未登录' },
+      { status: 401 }
+    )
+    }, { status: 401 })
     }
 
     // 获取查询参数
@@ -104,7 +109,10 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error('获取收入列表失败:', error)
-    return NextResponse.json({ error: '获取收入列表失败' }, { status: 500 })
+    return NextResponse.json(
+      { error: '获取收入列表失败' },
+      { status: 500 }
+    )
   }
 }
 
@@ -112,9 +120,13 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     // 验证用户是否登录
-    const user = await verifyUser()
-    if (!user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json(
+      { error: '未登录' },
+      { status: 401 }
+    )
+    }, { status: 401 })
     }
 
     // 获取请求数据
@@ -123,17 +135,26 @@ export async function POST(request: Request) {
 
     // 验证必填字段
     if (!vehicle_id || !amount || !revenue_phase || !payment_date) {
-      return NextResponse.json({ error: '缺少必填字段' }, { status: 400 })
+      return NextResponse.json(
+      { error: '缺少必填字段' },
+      { status: 400 }
+    )
     }
 
     // 验证金额必须大于零
     if (parseFloat(amount) <= 0) {
-      return NextResponse.json({ error: '金额必须大于零' }, { status: 400 })
+      return NextResponse.json(
+      { error: '金额必须大于零' },
+      { status: 400 }
+    )
     }
 
     // 验证收款阶段必须大于等于1
     if (parseInt(revenue_phase) < 1) {
-      return NextResponse.json({ error: '收款阶段必须大于等于1' }, { status: 400 })
+      return NextResponse.json(
+      { error: '收款阶段必须大于等于1' },
+      { status: 400 }
+    )
     }
 
     // 创建新收入记录
@@ -158,6 +179,9 @@ export async function POST(request: Request) {
     return NextResponse.json(revenue)
   } catch (error) {
     console.error('添加收入失败:', error)
-    return NextResponse.json({ error: '添加收入失败' }, { status: 500 })
+    return NextResponse.json(
+      { error: '添加收入失败' },
+      { status: 500 }
+    )
   }
 } 

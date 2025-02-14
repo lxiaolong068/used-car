@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyUser } from '@/lib/auth';
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth';
 
 export async function GET(
   request: Request,
@@ -8,14 +9,21 @@ export async function GET(
 ) {
   try {
     // 验证用户登录状态
-    const user = await verifyUser();
-    if (!user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json(
+      { error: '未登录' },
+      { status: 401 }
+    )
+    }, { status: 401 });
     }
 
     const vehicleId = parseInt(params.vehicleId);
     if (isNaN(vehicleId)) {
-      return NextResponse.json({ error: '无效的车辆ID' }, { status: 400 });
+      return NextResponse.json(
+      { error: '无效的车辆ID' },
+      { status: 400 }
+    );
     }
 
     // 获取该车辆的最新付款阶段

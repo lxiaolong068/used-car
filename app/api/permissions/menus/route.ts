@@ -38,7 +38,7 @@ export async function GET() {
         },
       },
       orderBy: {
-        sort_order: 'asc',
+        sort_order: 'desc',
       },
     })
 

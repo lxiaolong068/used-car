@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyUser } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // 获取单个车辆信息
 export async function GET(
@@ -9,14 +10,21 @@ export async function GET(
 ) {
   try {
     // 验证用户是否登录
-    const user = await verifyUser()
-    if (!user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json(
+      { error: '未登录' },
+      { status: 401 }
+    )
+    }, { status: 401 })
     }
 
     const vehicleId = parseInt(params.id)
     if (isNaN(vehicleId)) {
-      return NextResponse.json({ error: '无效的车辆ID' }, { status: 400 })
+      return NextResponse.json(
+      { error: '无效的车辆ID' },
+      { status: 400 }
+    )
     }
 
     // 查询车辆信息
@@ -27,13 +35,19 @@ export async function GET(
     })
 
     if (!car) {
-      return NextResponse.json({ error: '车辆不存在' }, { status: 404 })
+      return NextResponse.json(
+      { error: '车辆不存在' },
+      { status: 404 }
+    )
     }
 
     return NextResponse.json(car)
   } catch (error) {
     console.error('获取车辆信息失败:', error)
-    return NextResponse.json({ error: '获取车辆信息失败' }, { status: 500 })
+    return NextResponse.json(
+      { error: '获取车辆信息失败' },
+      { status: 500 }
+    )
   }
 }
 
@@ -44,14 +58,21 @@ export async function PUT(
 ) {
   try {
     // 验证用户是否登录
-    const user = await verifyUser()
-    if (!user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json(
+      { error: '未登录' },
+      { status: 401 }
+    )
+    }, { status: 401 })
     }
 
     const vehicleId = parseInt(params.id)
     if (isNaN(vehicleId)) {
-      return NextResponse.json({ error: '无效的车辆ID' }, { status: 400 })
+      return NextResponse.json(
+      { error: '无效的车辆ID' },
+      { status: 400 }
+    )
     }
 
     // 获取请求数据
@@ -60,13 +81,19 @@ export async function PUT(
 
     // 验证必填字段
     if (!vin || !vehicle_model || !register_date || !purchase_date || !mileage) {
-      return NextResponse.json({ error: '缺少必填字段' }, { status: 400 })
+      return NextResponse.json(
+      { error: '缺少必填字段' },
+      { status: 400 }
+    )
     }
 
     // 验证销售状态
     const saleStatusNum = Number(sale_status)
     if (isNaN(saleStatusNum) || ![0, 1].includes(saleStatusNum)) {
-      return NextResponse.json({ error: '无效的销售状态' }, { status: 400 })
+      return NextResponse.json(
+      { error: '无效的销售状态' },
+      { status: 400 }
+    )
     }
 
     // 更新车辆信息
@@ -95,7 +122,10 @@ export async function PUT(
     return NextResponse.json(car)
   } catch (error) {
     console.error('更新车辆信息失败:', error)
-    return NextResponse.json({ error: '更新车辆信息失败' }, { status: 500 })
+    return NextResponse.json(
+      { error: '更新车辆信息失败' },
+      { status: 500 }
+    )
   }
 }
 
@@ -106,14 +136,21 @@ export async function DELETE(
 ) {
   try {
     // 验证用户是否登录
-    const user = await verifyUser()
-    if (!user) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json(
+      { error: '未登录' },
+      { status: 401 }
+    )
+    }, { status: 401 })
     }
 
     const vehicleId = parseInt(params.id)
     if (isNaN(vehicleId)) {
-      return NextResponse.json({ error: '无效的车辆ID' }, { status: 400 })
+      return NextResponse.json(
+      { error: '无效的车辆ID' },
+      { status: 400 }
+    )
     }
 
     // 删除车辆
@@ -126,6 +163,9 @@ export async function DELETE(
     return NextResponse.json({ message: '删除成功' })
   } catch (error) {
     console.error('删除车辆失败:', error)
-    return NextResponse.json({ error: '删除车辆失败' }, { status: 500 })
+    return NextResponse.json(
+      { error: '删除车辆失败' },
+      { status: 500 }
+    )
   }
 } 

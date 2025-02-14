@@ -3,29 +3,28 @@
 import { Fragment } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { UserCircleIcon } from '@heroicons/react/24/outline'
-import { useRouter } from 'next/navigation'
+import { signOut } from 'next-auth/react'
+import { Session } from 'next-auth'
 
 interface UserMenuProps {
-  username: string;
-  role: string;
+  user: Session['user'] | null | undefined;
 }
 
-export default function UserMenu({ username, role }: UserMenuProps) {
-  const router = useRouter();
+export default function UserMenu({ user }: UserMenuProps) {
+  if (!user) {
+    return null;
+  }
 
   const handleLogout = async () => {
-    // 清除 cookie
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    // 跳转到登录页
-    router.push('/login');
+    await signOut({ redirect: true, callbackUrl: '/login' });
   };
 
   return (
     <Menu as="div" className="relative">
       <Menu.Button className="flex items-center max-w-xs rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
         <UserCircleIcon className="h-8 w-8 text-gray-400" />
-        <span className="ml-2 text-gray-700">{username}</span>
-        <span className="ml-1 text-sm text-gray-500">({role})</span>
+        <span className="ml-2 text-gray-700">{user.name}</span>
+        <span className="ml-1 text-sm text-gray-500">({user.role})</span>
       </Menu.Button>
 
       <Transition

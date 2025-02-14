@@ -9,7 +9,10 @@ export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session) {
-      return NextResponse.json({ error: '未授权访问' }, { status: 401 });
+      return NextResponse.json(
+      { error: '未授权访问' },
+      { status: 401 }
+    );
     }
 
     const url = new URL(request.url);

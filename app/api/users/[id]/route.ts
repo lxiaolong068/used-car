@@ -54,7 +54,7 @@ export async function DELETE(
     }
 
     // 如果要删除的用户是超级管理员，则不允许删除
-    if (user.role?.role_key === 'super_admin') {
+    if (session.session.user.role?.role_key === 'super_admin') {
       return NextResponse.json(
         { error: '不能删除超级管理员用户' },
         { status: 403 }
@@ -62,7 +62,7 @@ export async function DELETE(
     }
 
     // 如果当前用户是管理员（非超级管理员），则不能删除其他管理员
-    if (decoded.role === 'admin' && user.role?.role_key === 'admin') {
+    if (decoded.role === 'admin' && session.session.user.role?.role_key === 'admin') {
       return NextResponse.json(
         { error: '管理员不能删除其他管理员' },
         { status: 403 }
@@ -135,7 +135,7 @@ export async function PATCH(
     }
 
     // 如果要修改的用户是超级管理员，且当前用户不是超级管理员，则不允许修改
-    if (user.role?.role_key === 'super_admin' && decoded.role !== 'super_admin') {
+    if (session.session.user.role?.role_key === 'super_admin' && decoded.role !== 'super_admin') {
       return NextResponse.json(
         { error: '无权修改超级管理员用户' },
         { status: 403 }
@@ -143,7 +143,7 @@ export async function PATCH(
     }
 
     // 如果当前用户是管理员（非超级管理员），则不能修改其他管理员
-    if (decoded.role === 'admin' && user.role?.role_key === 'admin') {
+    if (decoded.role === 'admin' && session.session.user.role?.role_key === 'admin') {
       return NextResponse.json(
         { error: '管理员不能修改其他管理员' },
         { status: 403 }
