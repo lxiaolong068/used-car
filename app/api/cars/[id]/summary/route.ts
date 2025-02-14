@@ -11,18 +11,17 @@ export async function GET(
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json(
-      { error: '未登录' },
-      { status: 401 }
-    )
-    }, { status: 401 })
+        { error: '未登录' },
+        { status: 401 }
+      );
     }
 
     const vehicleId = parseInt(params.id)
     if (isNaN(vehicleId)) {
       return NextResponse.json(
-      { error: '无效的车辆ID' },
-      { status: 400 }
-    )
+        { error: '无效的车辆ID' },
+        { status: 400 }
+      )
     }
 
     // 获取车辆基本信息和相关的收入支出数据
@@ -48,9 +47,9 @@ export async function GET(
 
     if (!carInfo) {
       return NextResponse.json(
-      { error: '车辆不存在' },
-      { status: 404 }
-    )
+        { error: '车辆不存在' },
+        { status: 404 }
+      )
     }
 
     // 计算总收入

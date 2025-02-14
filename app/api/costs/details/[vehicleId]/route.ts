@@ -12,10 +12,9 @@ export async function GET(
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json(
-      { error: '未登录' },
-      { status: 401 }
-    )
-    }, { status: 401 })
+        { error: '未登录' },
+        { status: 401 }
+      );
     }
 
     const vehicleId = parseInt(params.vehicleId)

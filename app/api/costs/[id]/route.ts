@@ -13,18 +13,17 @@ export async function GET(
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json(
-      { error: '未登录' },
-      { status: 401 }
-    )
-    }, { status: 401 })
+        { error: '未登录' },
+        { status: 401 }
+      );
     }
 
     const costId = parseInt(params.id)
     if (isNaN(costId)) {
       return NextResponse.json(
-      { error: '无效的费用ID' },
-      { status: 400 }
-    )
+        { error: '无效的费用ID' },
+        { status: 400 }
+      )
     }
 
     // 查询费用信息
@@ -44,9 +43,9 @@ export async function GET(
 
     if (!cost) {
       return NextResponse.json(
-      { error: '费用不存在' },
-      { status: 404 }
-    )
+        { error: '费用不存在' },
+        { status: 404 }
+      )
     }
 
     return NextResponse.json(cost)
@@ -69,18 +68,17 @@ export async function PUT(
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json(
-      { error: '未登录' },
-      { status: 401 }
-    )
-    }, { status: 401 })
+        { error: '未登录' },
+        { status: 401 }
+      );
     }
 
     const costId = parseInt(params.id)
     if (isNaN(costId)) {
       return NextResponse.json(
-      { error: '无效的费用ID' },
-      { status: 400 }
-    )
+        { error: '无效的费用ID' },
+        { status: 400 }
+      )
     }
 
     // 获取请求数据
@@ -90,25 +88,25 @@ export async function PUT(
     // 验证必填字段
     if (!vehicle_id || !amount || !payment_phase || !payment_date) {
       return NextResponse.json(
-      { error: '缺少必填字段' },
-      { status: 400 }
-    )
+        { error: '缺少必填字段' },
+        { status: 400 }
+      )
     }
 
     // 验证金额必须大于零
     if (parseFloat(amount) <= 0) {
       return NextResponse.json(
-      { error: '金额必须大于零' },
-      { status: 400 }
-    )
+        { error: '金额必须大于零' },
+        { status: 400 }
+      )
     }
 
     // 验证付款阶段必须大于等于1
     if (parseInt(payment_phase) < 1) {
       return NextResponse.json(
-      { error: '付款阶段必须大于等于1' },
-      { status: 400 }
-    )
+        { error: '付款阶段必须大于等于1' },
+        { status: 400 }
+      )
     }
 
     // 更新费用信息
@@ -154,18 +152,17 @@ export async function DELETE(
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json(
-      { error: '未登录' },
-      { status: 401 }
-    )
-    }, { status: 401 })
+        { error: '未登录' },
+        { status: 401 }
+      );
     }
 
     const costId = parseInt(params.id)
     if (isNaN(costId)) {
       return NextResponse.json(
-      { error: '无效的费用ID' },
-      { status: 400 }
-    )
+        { error: '无效的费用ID' },
+        { status: 400 }
+      )
     }
 
     // 删除费用
