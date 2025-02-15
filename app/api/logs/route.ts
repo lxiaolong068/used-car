@@ -47,13 +47,6 @@ export async function GET(request: Request) {
     const [logs, total] = await Promise.all([
       prisma.operation_log.findMany({
         where,
-        include: {
-          user: {
-            select: {
-              username: true,
-            },
-          },
-        },
         orderBy: {
           create_time: 'desc',
         },
@@ -63,11 +56,22 @@ export async function GET(request: Request) {
       prisma.operation_log.count({ where }),
     ]);
 
-    const formattedLogs = logs.map((log) => ({
-      ...log,
-      username: log.user?.username || '未知用户',
-      user: undefined,
-    }));
+    // 提取所有非空的 user_id
+    const userIds = logs.map(log => log.user_id).filter(id => id != null);
+    // 查询对应的用户，只返回 user_id 和 username
+    const users = await prisma.user.findMany({
+      where: { user_id: { in: userIds } },
+      select: { user_id: true, username: true }
+    });
+
+    // 合并用户的 username 到日志记录中
+    const formattedLogs = logs.map(log => {
+      const user = users.find(u => u.user_id === log.user_id);
+      return {
+        ...log,
+        username: user ? user.username : '未知用户',
+      };
+    });
 
     return NextResponse.json({
       logs: formattedLogs,
