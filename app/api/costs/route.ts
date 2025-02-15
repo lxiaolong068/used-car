@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { recordOperation } from '@/lib/operationLog'
 
 // 获取费用列表
 export async function GET(request: Request) {
@@ -149,11 +150,18 @@ export async function POST(request: Request) {
       }
     })
 
+    // 记录操作日志
+    await recordOperation(
+      session.user.user_id,
+      '添加费用',
+      `添加费用记录：${amount}元，车辆ID：${vehicle_id}，类型：${payment_phase}`
+    );
+
     return NextResponse.json(cost)
   } catch (error) {
     console.error('添加费用失败:', error)
     return NextResponse.json(
-      { error: '添加费用失败' },
+      { error: '添加费用失败', details: error.message },
       { status: 500 }
     )
   }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { recordOperation } from '@/lib/operationLog'
 
 // 获取单个车辆信息
 export async function GET(
@@ -117,6 +118,13 @@ export async function PUT(
       } as any
     })
 
+    // 记录操作日志
+    await recordOperation(
+      session.user.user_id,
+      '修改车辆',
+      `修改车辆信息：${car.vin} ${car.vehicle_model}，ID：${car.vehicle_id}`
+    );
+
     return NextResponse.json(car)
   } catch (error) {
     console.error('更新车辆信息失败:', error)
@@ -150,12 +158,32 @@ export async function DELETE(
       )
     }
 
-    // 删除车辆
+    // 先获取车辆信息，用于日志记录
+    const car = await prisma.car_info.findUnique({
+      where: {
+        vehicle_id: vehicleId
+      }
+    })
+
+    if (!car) {
+      return NextResponse.json(
+        { error: '车辆不存在' },
+        { status: 404 }
+      );
+    }
+
     await prisma.car_info.delete({
       where: {
         vehicle_id: vehicleId
       }
     })
+
+    // 记录操作日志
+    await recordOperation(
+      session.user.user_id,
+      '删除车辆',
+      `删除车辆：${car.vin} ${car.vehicle_model}，ID：${car.vehicle_id}`
+    );
 
     return NextResponse.json({ message: '删除成功' })
   } catch (error) {
