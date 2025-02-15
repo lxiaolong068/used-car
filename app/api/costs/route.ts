@@ -101,6 +101,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // 调试输出 session 内容
+    console.log('Session content:', JSON.stringify(session, null, 2))
+
     // 获取请求数据
     const data = await request.json()
     const { vehicle_id, amount, remark = '', payment_phase, payment_date } = data
@@ -151,10 +154,19 @@ export async function POST(request: Request) {
     })
 
     // 记录操作日志
+    const userId = session.user.id // 修改这里，使用 id 而不是 user_id
+    if (!userId) {
+      console.error('User ID is missing in session:', session)
+      return NextResponse.json(
+        { error: '添加费用失败：用户ID未找到' },
+        { status: 500 }
+      )
+    }
+
     await recordOperation(
-      session.user.user_id,
+      userId,
       '添加费用',
-      `添加费用记录：${amount}元，车辆ID：${vehicle_id}，类型：${payment_phase}`
+      `添加费用记录：${cost.amount}元，车辆ID：${cost.vehicle_id}，付款阶段：${cost.payment_phase}`
     );
 
     return NextResponse.json(cost)

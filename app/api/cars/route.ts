@@ -124,8 +124,16 @@ export async function POST(request: Request) {
     })
 
     // 记录操作日志
+    if (!session?.user?.id) {
+      console.error('User ID is missing in session');
+      return NextResponse.json(
+        { error: '添加车辆失败：用户ID未找到' },
+        { status: 500 }
+      );
+    }
+
     await recordOperation(
-      session.user.user_id,
+      session.user.id,
       '添加车辆',
       `添加车辆：${data.brand} ${data.model}，车架号：${data.vin || '未填写'}`
     );

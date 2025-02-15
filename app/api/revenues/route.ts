@@ -176,8 +176,16 @@ export async function POST(request: Request) {
     })
 
     // 记录操作日志
+    if (!session?.user?.id) {
+      console.error('User ID is missing in session');
+      return NextResponse.json(
+        { error: '添加收入失败：用户ID未找到' },
+        { status: 500 }
+      );
+    }
+
     await recordOperation(
-      session.user.user_id,
+      session.user.id,
       '添加收入',
       `添加收入记录：${amount}元，车辆ID：${vehicle_id}`
     );
