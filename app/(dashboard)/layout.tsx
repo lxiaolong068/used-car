@@ -1,6 +1,6 @@
 'use client'
 
-import { ClientProviders } from '@/components/providers/ClientProviders'
+import { ClientProviders } from '@/app/components/providers/ClientProviders'
 
 export default function DashboardLayout({
   children,

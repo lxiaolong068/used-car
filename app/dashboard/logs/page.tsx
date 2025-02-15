@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import OperationLogs from '@/components/features/logs/OperationLogs';
+import OperationLogs from '@/app/components/features/logs/OperationLogs';
 
 export const metadata: Metadata = {
   title: '操作日志 - 二手车管理系统',

@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import { PlusIcon, PencilIcon, TrashIcon, BanknotesIcon } from '@heroicons/react/24/outline'
 import { format } from 'date-fns'
 import toast, { Toaster } from 'react-hot-toast'
-import VehicleFinancialModal from '../../components/cars/VehicleFinancialModal'
-import RevenueDetailModal from '../../components/cars/RevenueDetailModal'
-import CostDetailModal from '../../components/cars/CostDetailModal'
-import { RevenueForm } from '../../components/revenue/RevenueForm'
-import { Input } from '../../components/ui/input'
-import { Button } from '../../components/ui/button'
+import VehicleFinancialModal from '@/app/components/cars/VehicleFinancialModal'
+import RevenueDetailModal from '@/app/components/cars/RevenueDetailModal'
+import CostDetailModal from '@/app/components/cars/CostDetailModal'
+import RevenueForm from '@/app/components/revenue/RevenueForm'
+import { Input } from '@/app/components/ui/input'
+import { Button } from '@/app/components/ui/button'
 
 interface CarInfo {
   vehicle_id: number
@@ -355,14 +355,16 @@ export default function CarsPage() {
 
   // 打开收入明细模态框
   const openRevenueDetail = (vehicleId: number) => {
-    setSelectedRevenueVehicleId(vehicleId)
-    setIsRevenueDetailModalOpen(true)
+    console.log('Opening revenue detail for vehicle:', vehicleId);
+    setSelectedRevenueVehicleId(vehicleId);
+    setIsRevenueDetailModalOpen(true);
   }
 
   // 打开费用明细模态框
   const openCostDetail = (vehicleId: number) => {
-    setSelectedCostVehicleId(vehicleId)
-    setIsCostDetailModalOpen(true)
+    console.log('Opening cost detail for vehicle:', vehicleId);
+    setSelectedCostVehicleId(vehicleId);
+    setIsCostDetailModalOpen(true);
   }
 
   return (
@@ -519,16 +521,22 @@ export default function CarsPage() {
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500">
                           <button
-                            onClick={() => openRevenueDetail(car.vehicle_id)}
-                            className="hover:text-blue-600 hover:underline"
+                            onClick={() => {
+                              console.log('Revenue button clicked for vehicle:', car.vehicle_id);
+                              openRevenueDetail(car.vehicle_id);
+                            }}
+                            className="hover:text-blue-600 hover:underline cursor-pointer"
                           >
                             {settlements[car.vehicle_id]?.totalRevenue?.toLocaleString('zh-CN', { style: 'currency', currency: 'CNY' }) || '-'}
                           </button>
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500">
                           <button
-                            onClick={() => openCostDetail(car.vehicle_id)}
-                            className="hover:text-blue-600 hover:underline"
+                            onClick={() => {
+                              console.log('Cost button clicked for vehicle:', car.vehicle_id);
+                              openCostDetail(car.vehicle_id);
+                            }}
+                            className="hover:text-blue-600 hover:underline cursor-pointer"
                           >
                             {settlements[car.vehicle_id]?.totalCost?.toLocaleString('zh-CN', { style: 'currency', currency: 'CNY' }) || '-'}
                           </button>
@@ -670,7 +678,7 @@ export default function CarsPage() {
 
       {/* 新增/编辑模态框 */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 max-w-3xl w-full">
             <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
               {editingCar ? '编辑车辆信息' : '添加新车辆'}
@@ -804,7 +812,7 @@ export default function CarsPage() {
 
       {/* 费用表单模态框 */}
       {isCostModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
             <h2 className="text-xl font-bold mb-4">添加费用记录</h2>
             <form onSubmit={handleCostSubmit}>
@@ -883,7 +891,7 @@ export default function CarsPage() {
 
       {/* 收入表单模态框 */}
       {isRevenueModalOpen && selectedCarId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <RevenueForm
               vehicleId={selectedCarId}
@@ -906,16 +914,16 @@ export default function CarsPage() {
         />
       )}
 
-      {/* 添加收入明细模态框 */}
+      {/* 收入明细模态框 */}
       {isRevenueDetailModalOpen && selectedRevenueVehicleId && (
         <RevenueDetailModal
           isOpen={isRevenueDetailModalOpen}
           onClose={() => setIsRevenueDetailModalOpen(false)}
-          vehicleId={selectedRevenueVehicleId}
+          vehicleId={selectedRevenueVehicleId || 0}
         />
       )}
 
-      {/* 添加费用明细模态框 */}
+      {/* 费用明细模态框 */}
       {isCostDetailModalOpen && selectedCostVehicleId && (
         <CostDetailModal
           isOpen={isCostDetailModalOpen}
@@ -924,5 +932,5 @@ export default function CarsPage() {
         />
       )}
     </div>
-  )
-} 
+  );
+}

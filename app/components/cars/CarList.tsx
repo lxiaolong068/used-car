@@ -3,9 +3,11 @@
 import { useCarList } from '@/lib/hooks/queries/useCarList';
 import { useUpdateCar } from '@/lib/hooks/mutations/useUpdateCar';
 import { useState } from 'react';
+import { CostDetailsDialog } from './CostDetailsDialog';
 
 export function CarList() {
   const [page, setPage] = useState(1);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null);
   const { data, isLoading, error } = useCarList({
     page,
     pageSize: 10,
@@ -35,18 +37,26 @@ export function CarList() {
             <p className="text-gray-600">
               状态: {car.sale_status === 0 ? '在售' : '已售'}
             </p>
-            <button
-              onClick={() =>
-                updateCar.mutate({
-                  id: car.vehicle_id,
-                  data: { sale_status: car.sale_status === 0 ? 1 : 0 },
-                })
-              }
-              className="mt-2 px-4 py-2 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
-              disabled={updateCar.isPending}
-            >
-              {updateCar.isPending ? '更新中...' : '切换状态'}
-            </button>
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={() =>
+                  updateCar.mutate({
+                    id: car.vehicle_id,
+                    data: { sale_status: car.sale_status === 0 ? 1 : 0 },
+                  })
+                }
+                className="px-4 py-2 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
+                disabled={updateCar.isPending}
+              >
+                {updateCar.isPending ? '更新中...' : '切换状态'}
+              </button>
+              <button
+                onClick={() => setSelectedVehicleId(car.vehicle_id)}
+                className="px-4 py-2 text-sm text-white bg-green-500 rounded hover:bg-green-600"
+              >
+                查看费用
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -70,6 +80,12 @@ export function CarList() {
           下一页
         </button>
       </div>
+
+      <CostDetailsDialog
+        isOpen={selectedVehicleId !== null}
+        onClose={() => setSelectedVehicleId(null)}
+        vehicleId={selectedVehicleId || 0}
+      />
     </div>
   );
-} 
+}

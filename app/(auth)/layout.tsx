@@ -1,6 +1,6 @@
 'use client'
 
-import { PublicProviders } from '@/components/providers/PublicProviders'
+import { PublicProviders } from '@/app/components/providers/PublicProviders'
 
 export default function AuthLayout({
   children,

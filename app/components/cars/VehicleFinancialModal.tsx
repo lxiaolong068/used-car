@@ -1,3 +1,5 @@
+'use client';
+
 import { Fragment, useEffect, useState, useRef } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { format } from 'date-fns'
@@ -201,99 +203,83 @@ export default function VehicleFinancialModal({ isOpen, onClose, vehicleId }: Pr
                           </div>
                         </div>
 
-                        {/* 收入记录 */}
+                        {/* 费用明细 */}
                         <div className="mb-6">
-                          <h4 className="text-sm font-medium text-gray-500 mb-2">收入记录</h4>
-                          <div className="bg-white shadow rounded-lg overflow-hidden">
-                            <table className="min-w-full divide-y divide-gray-200">
-                              <thead className="bg-gray-50">
-                                <tr>
-                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    日期
-                                  </th>
-                                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    金额
-                                  </th>
-                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    备注
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody className="bg-white divide-y divide-gray-200">
-                                {data.details.revenues.length === 0 ? (
-                                  <tr>
-                                    <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">
-                                      暂无收入记录
-                                    </td>
-                                  </tr>
-                                ) : (
-                                  data.details.revenues.map((revenue, index) => (
-                                    <tr key={index}>
-                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {format(new Date(revenue.date), 'yyyy-MM-dd')}
-                                      </td>
-                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 text-right">
-                                        ¥{revenue.amount.toLocaleString()}
-                                      </td>
-                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {revenue.remark}
-                                      </td>
-                                    </tr>
-                                  ))
-                                )}
-                              </tbody>
-                            </table>
+                          <h4 className="text-sm font-medium text-gray-500 mb-2">费用明细</h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            {Object.entries(data.financial_summary.cost_breakdown).map(([type, amount]) => (
+                              <div key={type} className="bg-gray-50 p-4 rounded-lg">
+                                <p className="text-sm text-gray-500">{COST_TYPE_MAP[type] || type}</p>
+                                <p className="text-lg font-medium text-gray-900">
+                                  ¥{amount.toLocaleString()}
+                                </p>
+                              </div>
+                            ))}
                           </div>
                         </div>
 
-                        {/* 支出记录 */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-500 mb-2">支出记录</h4>
-                          <div className="bg-white shadow rounded-lg overflow-hidden">
-                            <table className="min-w-full divide-y divide-gray-200">
-                              <thead className="bg-gray-50">
-                                <tr>
-                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    日期
-                                  </th>
-                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    类型
-                                  </th>
-                                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    金额
-                                  </th>
-                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    备注
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody className="bg-white divide-y divide-gray-200">
-                                {data.details.costs.length === 0 ? (
+                        {/* 收支明细表格 */}
+                        <div className="grid grid-cols-2 gap-6">
+                          {/* 收入明细 */}
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-500 mb-2">收入明细</h4>
+                            <div className="overflow-x-auto">
+                              <table className="min-w-full divide-y divide-gray-300">
+                                <thead>
                                   <tr>
-                                    <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
-                                      暂无支出记录
-                                    </td>
+                                    <th scope="col" className="py-2 text-left text-sm font-semibold text-gray-900">日期</th>
+                                    <th scope="col" className="py-2 text-right text-sm font-semibold text-gray-900">金额</th>
+                                    <th scope="col" className="py-2 text-left text-sm font-semibold text-gray-900">备注</th>
                                   </tr>
-                                ) : (
-                                  data.details.costs.map((cost, index) => (
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                  {data.details.revenues.map((revenue, index) => (
                                     <tr key={index}>
-                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                      <td className="whitespace-nowrap py-2 text-sm text-gray-500">
+                                        {format(new Date(revenue.date), 'yyyy-MM-dd')}
+                                      </td>
+                                      <td className="whitespace-nowrap py-2 text-sm text-gray-900 text-right">
+                                        ¥{revenue.amount.toLocaleString()}
+                                      </td>
+                                      <td className="py-2 text-sm text-gray-500">{revenue.remark || '-'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+
+                          {/* 支出明细 */}
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-500 mb-2">支出明细</h4>
+                            <div className="overflow-x-auto">
+                              <table className="min-w-full divide-y divide-gray-300">
+                                <thead>
+                                  <tr>
+                                    <th scope="col" className="py-2 text-left text-sm font-semibold text-gray-900">日期</th>
+                                    <th scope="col" className="py-2 text-left text-sm font-semibold text-gray-900">类型</th>
+                                    <th scope="col" className="py-2 text-right text-sm font-semibold text-gray-900">金额</th>
+                                    <th scope="col" className="py-2 text-left text-sm font-semibold text-gray-900">备注</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                  {data.details.costs.map((cost, index) => (
+                                    <tr key={index}>
+                                      <td className="whitespace-nowrap py-2 text-sm text-gray-500">
                                         {format(new Date(cost.date), 'yyyy-MM-dd')}
                                       </td>
-                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                      <td className="whitespace-nowrap py-2 text-sm text-gray-500">
                                         {COST_TYPE_MAP[cost.type] || cost.type}
                                       </td>
-                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-right">
+                                      <td className="whitespace-nowrap py-2 text-sm text-gray-900 text-right">
                                         ¥{cost.amount.toLocaleString()}
                                       </td>
-                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {cost.remark}
-                                      </td>
+                                      <td className="py-2 text-sm text-gray-500">{cost.remark || '-'}</td>
                                     </tr>
-                                  ))
-                                )}
-                              </tbody>
-                            </table>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -307,4 +293,4 @@ export default function VehicleFinancialModal({ isOpen, onClose, vehicleId }: Pr
       </Dialog>
     </Transition.Root>
   )
-} 
+}

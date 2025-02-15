@@ -13,14 +13,21 @@ export async function GET(request: Request) {
     const vin = searchParams.get('vin')
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
+    const vehicleId = searchParams.get('vehicle_id')
     const skip = (page - 1) * pageSize
 
     // 构建查询条件
     let where: any = {}
     
+    // 如果有车辆ID筛选
+    if (vehicleId) {
+      where.vehicle_id = parseInt(vehicleId)
+    }
+    
     // 如果有车架号筛选
     if (vin) {
       where = {
+        ...where,
         car_info: {
           vin: {
             contains: vin
@@ -64,9 +71,14 @@ export async function GET(request: Request) {
           }
         }
       },
-      orderBy: {
-        create_time: 'desc'
-      },
+      orderBy: [
+        {
+          payment_phase: 'asc'
+        },
+        {
+          payment_date: 'desc'
+        }
+      ],
       skip,
       take: pageSize
     })
@@ -78,7 +90,7 @@ export async function GET(request: Request) {
         pageSize,
         total
       },
-      totalAmount: totalAmount._sum.amount || 0
+      totalAmount: totalAmount._sum.amount ?? 0
     })
   } catch (error) {
     console.error('获取费用列表失败:', error)

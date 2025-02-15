@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import type { TableColumn } from '@/types';
 
 interface PaginatedTableProps<T extends Record<string, any>> {
